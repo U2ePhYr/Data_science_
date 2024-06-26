@@ -680,5 +680,146 @@ def get_pandas():
     try:
         data = 123
         print(f'data is {data}')
+
+        import numpy as np
+        import pandas as pd
+
+        '''
+        Pandas的`Series`是一个一维的带索引序号的数组，可以通过列表或数组进行创建
+        '''
+        data = pd.Series([2,2.5,4.57,8.77])
+        data
+        '''
+        `Series`封装了一个值的序列（由列表指定）和一个索引序号的序列，
+        我们可以分别通过`values`和`index`属性访问它们。
+        `values`属性就是你已经很熟悉的NumPy数组
+        '''
+        data.values
+        data.index
+        data[1]
+        data[1:3]
+        '''
+        显式定义的索引提供了`Series`对象额外的能力。
+        例如，索引值不需要一定是个整数，
+        可以用任何需要的数据类型来定义索引显式定义的索引提供了`Series`对象额外的能力。
+        例如，索引值不需要一定是个整数，可以用任何需要的数据类型来定义索引
+        '''
+        data = pd.Series([2,2.5,4.57,8.77],index=['a','b','c','d'])
+        data['b']
+        '''
+        我们亦可以使用非连续的或非序列的索引值
+        '''
+        data = pd.Series([2,2.5,4.57,8.77],index=[2,'b',6,0])
+        data[6]
+
+        population_dict = {'California': 38332521,
+                   'Texas': 26448193,
+                   'New York': 19651127,
+                   'Florida': 19552860,
+                   'Illinois': 12882135}
+        population = pd.Series(population_dict)
+        data['California']
+        '''
+        下面这个操作是字典所不具有的，`Series`还支持按照数组方式的操作来对字典进行切片
+        '''
+        data['California':'Illinois']
+
+        '''
+        `data`可以是一个列表或NumPy数组，在这种情况下`index`默认是一个整数序列
+        '''
+        pd.Series([12,23,34])
+        '''
+        `data`可以是一个标量，这种情况下标量的值会填充到整个序列的index中
+        '''
+        pd.Series(5,index=[100,200,'moon'])
+        '''
+        `data`可以是一个字典，这种情况下`index`默认是一个排序的关键字key序列
+        每种情况下，index都可以作为额外的明确指定索引的方式，
+        结果也会依据index参数而发生变化
+        '''
+        pd.Series({1:'a', 2:'b', 34:'a'},index=[2,34])
+        '''
+        上例表明，结果中包含的数据仅是index明确指定部分
+        '''
+        '''
+        `DataFrame`既可以被当成是一种更通用的NumPy数组，
+        也可以被当成是一种特殊的Python字典
+        '''
+        area_dict = {'California': 423967, 'Texas': 695662, 'New York': 141297,
+             'Florida': 170312, 'Illinois': 149995}
+        area = pd.Series(area_dict)
+        
+        states = pd.DataFrame({'population': population, 'area': area})
+        states
+        '''
+        `DataFrame`对象也像`Series`一样有着`index`属性，包括所有的数据的索引标签
+        '''
+        states.index
+        '''
+        它额外含有一个`columns`属性，同样也是一个`Index`对象，存储这所有列的标签
+        '''
+        states.columns
+        '''
+        `DataFrame`将一个列标签映射成一个`Series`对象，里面含有整列的数据。
+        例如，访问`area`属性会返回一个`Series`对象包含前面我们放入的面积数据
+        '''
+        states['area']
+        '''
+        这里要注意一下容易混淆的地方：NumPy的二维数组中，
+        `data[0]`会返回第一行数据，而在`DataFrame`中，
+        `data['col0']`会返回第一列数据。正因为此，
+        最好还是将`DataFrame`当成是一个特殊的字典而不是通用的二维数组
+        '''
+        states[states.columns[0]]
+
+        pd.DataFrame(population,columns=['population'])
+        pd.DataFrame(population)
+
+        data = pd.DataFrame({'a': i, 'b': i**2} for i in range(3))
+        data = pd.DataFrame([{'a': 1, 'b': 2}, {'b': 3, 'c': 4}])
+        # data = pd.DataFrame({'a': 1, 'b': 2}, {'b': 3, 'c': 4}) 实际运行时后一个字典被识别为index，即行索引
+
+        '''
+        在给定一个二维NumPy数组的情况下，我们指定其相应的列和行的索引序列来构建一个`DataFrame`。
+        如果行或列的index没有指定，默认会使用一个整数索引序列来指定
+        '''
+        data = pd.DataFrame(np.random.rand(3,2),index=['a','foo','op'],columns=[1,'bb'])
+
+        A = np.zeros(3, dtype=[('A','i8'), ('B','f8')])
+        A = pd.DataFrame(A)
+
+        '''
+        `Series`和`DataFrame`对象都包含着一个显式定义的*索引index*对象，
+        它的作用就是让你快速访问和修改数据。`Index`对象是一个很有趣的数据结构，
+        它可以被当成*不可变的数组*或者*排序的集合*
+        （严格来说是多数据集合，因为`Index`允许包含重复的值）
+        '''
+        ind = pd.Index([1,23,4,5])
+        ind[1]
+        ind[::2]
+        print(ind.size,ind.shape,ind.ndim,ind.dtype)
+        '''
+        NumPy数组和`Index`对象的最大区别是你无法改变`Index`的元素值，它们是不可变的
+        这种不变性能在多个`DataFrame`之间共享索引时提供一种安全性，
+        避免因为疏忽造成的索引修改和其他的副作用
+        '''
+        ind[1] = 2
+        '''
+        Pandas对象被设计成能够满足跨数据集进行操作，
+        例如连接多个数据集查找或操作数据，这很大程度依赖于集合运算。
+        `Index`对象遵循Python內建的`set`数据结构的运算法则，
+        因此并集、交集、差集和其他的集合操作也可以按照熟悉的方式进行
+        '''
+        ind_A = pd.Index([1,11,41,45,124])
+        ind_B = pd.Index([11,24,234,56,1])
+
+        ind_A & ind_B
+        ind_A | ind_B
+        ind_A ^ ind_B # 互斥差集
+
+        
+
+
+
     except Exception as e:
         print(e)
