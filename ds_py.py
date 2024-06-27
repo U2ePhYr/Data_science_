@@ -817,6 +817,153 @@ def get_pandas():
         ind_A | ind_B
         ind_A ^ ind_B # 互斥差集
 
+        '''
+        Python中删除列表元素
+        '''
+        # 创建一个列表
+        list = [1, 2, 3, 4, 5]
+
+        # 使用del关键字删除元素
+        del list[1]
+        print(list)  # 输出：[1, 3, 4, 5]
+
+        # 使用remove()方法删除元素
+        list.remove(3)
+        print(list)  # 输出：[1, 4, 5]
+
+        # 使用pop()方法删除元素
+        list.pop(0)
+        print(list)  # 输出：[4, 5]
+
+        '''
+        `Series`对象在很多方面都表现的像一个一维NumPy数组，
+        也同时在很多方面表现像是一个标准的Python字典。
+        如果我们能将这两个基本概念记住，
+        它们能帮助我们理解Series的数据索引和选择的方法
+        '''
+        import pandas as pd
+        import numpy as np
+        
+        data = pd.Series(np.random.randint(5,size=4),index=['a','b','c','d'])
+        data['b']
+        '''
+        还可以使用标准Python字典的表达式和方法来检查Series的关键字和值
+        '''
+        'a' in data
+        data.keys()
+        list(data.items())
+        '''
+        `Series`对象还可以使用字典操作进行修改。
+        就像你可以给字典的一个新的关键字赋值一样，
+        你可以新增一个index关键字来扩展`Series`
+        '''
+        data['e'] = 100
+        '''
+        `Series`对象构建在字典一样的接口之上，
+        并且提供了和NumPy数组一样的数据选择方式，即*切片*，*遮盖*和*高级索引*
+        '''
+        data['a':'e']
+        data[0:2]
+        data[(data >= 0) & (data < 4)]
+        data[['a','e']]
+        '''
+        使用指定的显式索引进行切片（例如`data['a':'c']`），
+        结束位置的索引值是*包含*在切片里面的，然而，
+        使用隐式索引进行切片（例如`data[0:2]`），
+        结束位置的索引值是*不包含*在切片里面的
+        '''
+        data = pd.Series(['a','b','c'],index=[2,66,9])
+        data[66]
+        data[0:2]
+        '''
+        因为存在上面看到的这种混乱，
+        Pandas提供了一些特殊的*索引符*属性来明确指定使用哪种索引规则。
+        这些索引符不是函数，而是用来访问`Series`数据的切片属性
+        '''
+        '''
+        `loc`属性允许用户永远使用显式索引来进行定位和切片
+        '''
+        data.loc[2]
+        data.loc[2:9]
+        '''
+        `iloc`属性允许用户永远使用隐式索引来定位和切片
+        '''
+        data.iloc[1]
+        data.iloc[0:2]
+        '''
+        `loc`和`iloc`属性的明确含义使得它们对于维护干净和可读的代码方面非常有效
+        '''
+        area = pd.Series({'California': 423967, 'Texas': 695662,
+                  'New York': 141297, 'Florida': 170312,
+                  'Illinois': 149995})
+        pop = pd.Series({'California': 38332521, 'Texas': 26448193,
+                 'New York': 19651127, 'Florida': 19552860,
+                 'Illinois': 12882135})
+        data = pd.DataFrame({'area':area, 'pop':pop})
+        data['area']
+        '''
+        当列的名字是字符串时，我们也可以使用属性的方式访问
+        '''
+        data.area
+        data.area is data['area']
+        '''
+        请记住属性表达式并不是通用的。例如，如果列名不是字符串，
+        或者与`DataFrame`的方法名字发生冲突，属性表达式都没法使用。
+        例如，`DataFrame`有`pop()`方法，因此，
+        `data.pop`将会指向该方法而不是`"pop"`列
+        '''
+        data.pop is data['pop']
+        '''
+        应该避免使用属性表达式给列赋值（例如，应该使用`data['pop']=z`而不是`data.pop=z`）
+        '''
+        data['density'] = data['pop'] / data['area']
+        '''
+        我们也可以将`DataFrame`看成是一个扩展的二维数组。
+        我们可以通过`values`属性查看`DataFrame`对象的底层数组
+        '''
+        data.values[0]
+        '''
+        矩阵的倒置
+        '''
+        data.T
+        data['area']
+        '''
+        Pandas仍然使用`loc`、`iloc`和`ix`索引符来进行操作。
+        当你使用`iloc`时，这就是使用隐式索引，
+        Pandas会把`DataFrame`当成底层的NumPy数组来处理，
+        但行和列的索引值还是会保留在结果中
+        '''
+        data.iloc[1:3,0:2]
+        data.iloc[:3,-1]
+        '''
+        类似的，使用`loc`索引符时，我们使用的是明确指定的显示索引
+        '''
+        data.loc[:'Illinois', 'area':'pop']
+        '''
+        任何NumPy中熟悉的操作都可以在上面的索引符中使用。
+        例如，`loc`索引符中我们可以结合遮盖和高级索引模式
+        '''
+        data.loc[data['density'] > 100, 'area':'pop']
+        data.iloc[0,2] = 90
+        '''
+        还有一些额外的索引规则在实践中也很有用处。首先*索引*是针对列的，
+        而切片是针对行的
+        '''
+        data['Florida':'Illinois']
+        data[1:3]
+        '''
+        直接的遮盖操作也是对行的操作而不是对列的操作
+        '''
+        data[data['density'] > 100]
+        '''
+        上面两个规则与NumPy数组语法保持一致，然而他们和Pandas风格可能并不完全一致
+        '''
+        
+
+        
+        
+
+
         
 
 
