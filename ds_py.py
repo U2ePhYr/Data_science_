@@ -958,6 +958,106 @@ def get_pandas():
         '''
         上面两个规则与NumPy数组语法保持一致，然而他们和Pandas风格可能并不完全一致
         '''
+        # 7.1
+        '''
+        Pandas包括一些NumPy不具备的特性：对于一元运算如取负和三角函数，
+        这些ufuncs会在结果中*保留原来的index和column标签*；
+        对于二元运算如加法和乘法，Pandas会自动在结果中对参与运算的数据集
+        进行*索引对齐*操作
+        '''
+        '''
+        因为Pandas是设计和NumPy一起使用的，因此所有的NumPy通用函数都可以
+        在Pandas的`Series`和`DataFrame`对象上使用
+        '''
+        import numpy as np
+        import pandas as pd
+
+        rng = np.random.RandomState(44)
+        ser = pd.Series(rng.randint(0,10,4),index=['A','B','C','D'])
+
+        df = pd.DataFrame(rng.randint(0,10,(3,4))
+                          ,columns=['A','B','C','D'])
+        '''
+        如果我们对上面的一个对象使用一元ufunc运算，结果会产生另一个Pandas对象，
+        且*保留了索引*
+        '''
+        np.exp(ser)
+        np.sin(df * np.pi / 4)
+
+        area = pd.Series({'Alaska': 1723337, 'Texas': 695662,
+                  'California': 423967}, name='area')
+        population = pd.Series({'California': 38332521, 'Texas': 26448193,
+                        'New York': 19651127}, name='population')
+        population / area
+        population.index | area.index
+        '''
+        两个任意输入数据集中对应的另一个数据集不存在的元素都会被设置为`NaN`
+        （非数字的缩写），也就是Pandas标示缺失数据的方法。索引的对齐方式会应用在
+        任何Python內建的算术运算上，任何缺失的值都会被填充成NaN
+        '''
+        A = pd.Series([2, 4, 6], index=[0, 1, 2])
+        B = pd.Series([1, 3, 5], index=[1, 2, 3])
+        A + B
+        '''
+        如果填充成NaN值不是你需要的结果，你可以使用相应的ufunc函数来计算，
+        然后在函数中设置相应的填充值参数
+        '''
+        A.add(B,fill_value=0)
+        '''
+        类似的对齐方式在对`DataFrame`操作当中会同时发生在列和行上
+        '''
+        A = pd.DataFrame(rng.randint(0,20,(2,2)),columns=list('AB'))
+        B = pd.DataFrame(rng.randint(0,10,(3,3)),columns=list('BAC')) 
+        A + B
+        '''
+        注意不管索引在输入数据集中的顺序并不会影响结果当中索引的对齐情况
+        '''
+        '''
+        df.stack() 是Pandas库中的一个函数，用于将DataFrame的列“压缩”到索引中。
+        这个操作会返回一个新的Series,其中原始DataFrame的列名成为了MultiIndex
+        '''
+        fill = A.stack().mean() #计算`A`中所有值的平均值
+        A.add(B,fill_value=fill)
+        '''
+        下面列出了Python的运算操作及其对应的Pandas方法：
+        | Python运算符 | Pandas方法                      |
+        |-----------------|---------------------------------------|
+        | ``+``           | ``add()``                             |
+        | ``-``           | ``sub()``, ``subtract()``             |
+        | ``*``           | ``mul()``, ``multiply()``             |
+        | ``/``           | ``truediv()``, ``div()``, ``divide()``|
+        | ``//``          | ``floordiv()``                        |
+        | ``%``           | ``mod()``                             |
+        | ``**``          | ``pow()``                             |
+        '''
+        '''
+        当在`DataFrame`和`Series`之间进行运算操作时，行和列的标签对齐机制依然有效。
+        `DataFrame`和`Series`之间的操作类似于在一维数组和二维数组之间进行操作
+        '''
+        '''
+        依据NumPy的广播规则
+        '''
+        A = rng.randint(10,size=(3,4))
+        A - A[1]
+        '''
+        Pandas中，默认也是采用这种广播机制
+        '''
+        df = pd.DataFrame(A, columns=list('QRST'))
+        df - df.iloc[1]
+        df.loc[1:2]
+        '''
+        如果你希望能够按照列进行减法，你需要使用对应的ufunc函数，然后指定`axis`参数
+        '''
+        df.subtract(df['R'], axis=0)
+        halfrow = df.iloc[0,::2]
+        df - halfrow
+        '''
+        本节介绍的行与列索引保留和对齐机制说明Pandas在进行数据操作时会保持数据的上下文信息，
+        因此可以避免同样情况下，使用NumPy数组操作不同形状和异构数据时会发生的错误
+        '''
+
+
+        
         
 
         
