@@ -103,6 +103,32 @@ select case
     end
 from BST
 order by N
+'''
+Write a query calculating the amount of error (i.e.:  average monthly salaries), and round it up to the next integer
+'''
+'''
+CAST函数语法规则是：Cast(字段名 as 转换的类型 )，其中类型可以为：
+	CHAR[(N)] 字符型
+	DATE 日期型
+	DATETIME 日期和时间型
+	DECIMAL float型
+	SIGNED int
+	TIME 时间型
+	
+	整数 : SIGNED
+	无符号整数 : UNSIGNED（非负整数）
+'''
+'''
+REPLACE(str, from_str, to_str)
+	str:要进行替换操作的原始字符串。
+	from_str:需要被替换的子串。
+	to_str:用于替换from_str的新子串。
+'''
+select ceil(avg(salary) - avg(cast((replace(cast(salary as char),'0','')) as signed)))
+from employees
+
+select ceil(avg(salary) - avg(replace(salary,'0','')))
+from employees
 
 
 
