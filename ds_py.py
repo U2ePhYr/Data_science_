@@ -1055,6 +1055,184 @@ def get_pandas():
         本节介绍的行与列索引保留和对齐机制说明Pandas在进行数据操作时会保持数据的上下文信息，
         因此可以避免同样情况下，使用NumPy数组操作不同形状和异构数据时会发生的错误
         '''
+        '''
+        8
+        UDDDUDUU
+        [1,-1,-1,-1,1,-1,1,1]
+        [1,0,-1,-2,-1,-2,-1,0]
+        _/\      _  
+        \    /
+            \/\/
+        '''
+        def countingValleys(steps, path):
+            l = []
+            count = 0
+            for i in path:
+                if i == 'U':
+                    l.append(1)
+                else:
+                    l.append(-1)
+            
+            for j, num in enumerate(l):
+                if j > 0:
+                    l[j] = l[j-1] + num
+            
+            for m, mum in enumerate(l):
+                if (mum == 0) & (l[m-1] < 0):
+                    count += 1
+            return count
+        '''
+        真实的数据很少是干净和同质的。更寻常的情况是，
+        很多有意思的数据集都有很多的数据缺失。更复杂的是，
+        不同的数据源可能有着不同指代缺失数据的方式
+        '''
+        '''
+        在哨兵值的情况下，哨兵值是某种数据特定的约定值，
+        例如用-9999标示一个缺失的整数或者其他罕见的数值，
+        又或者使用更加通用的方式，
+        比方说标示一个缺失的浮点数为NaN（非数字），
+        NaN是IEEE浮点数标准中的一部分。
+        Pandas选择了最后一种方案，即通用哨兵值标示缺失值。
+        更进一步说就是，使用两个已经存在的Python空值：
+        `NaN`代表特殊的浮点数值和Python的`None`对象
+        '''
+        import pandas as pd
+        import numpy as np
+
+        vals1 = np.array([1,None,3,4]) 
+        '''
+        第一个被Pandas使用的缺失哨兵值是`None`，
+        它是一个Python的单例对象，很多情况下它都作为Python代码中
+        缺失值的标志。因为这是一个Python对象，`None`不能在任意的
+        NumPy或Pandas数组中使用，它只能在数组的数据类型
+        是`object`的情况下使用（例如，Python对象组成的数组）
+        '''
+        '''
+        `dtype=object`表示这个NumPy数组的元素类型是Python的对象
+        '''
+        for dtype in [object,int]:
+            print('dtype=',dtype)
+            %timeit np.arange(2E6,dtype=dtype).sum()
+            print()
+        '''
+        会比NumPy其他基础类型进行的快速操作消耗更多的执行时间
+        '''
+        vals1.sum()
+        '''
+        使用Python对象作为数组数据类型的话，当使用聚合操作如`sum()`
+        或`min()`的时候，如果碰到了`None`值，那就会产生一个错误：
+        整数和`None`对象之间进行加法运算是未定义的
+        '''
+        vals2 = np.array([1,np.nan,3,4]) 
+        vals2.dtype
+        '''
+        NumPy使用原始的浮点类型来存储这个数组：
+        这意味着不像前面的对象数组，
+        这个数组支持使用编译代码来进行快速运算。
+        你应该了解到`NaN`就像一个数据的病毒，
+        它会传染到任何接触到的数据。不论运算是哪种类型，
+        `NaN`参与的算术运算的结果都会是另一个`NaN`
+        '''
+        1 + np.nan
+        0 * np.nan
+        '''
+        对于这个数组进行的聚合操作是良好定义的（意思是不会发生错误），
+        但是却并不十分有意义
+        '''
+        print(vals2.sum(),vals2.max(),vals2.min())
+        '''
+        NumPy还提供了一些特殊的聚合函数可以用来忽略这些缺失值
+        '''
+        import math
+        print(np.nansum(vals2),np.nanmax(vals2),math.floor(np.nanmean(vals2)))
+        '''
+        请记住`NaN`是一个特殊的浮点数值；对于整数、字符串或者其他类型来说都没有对应的值
+        '''
+        m = pd.Series([1,np.nan,3,None])
+        '''
+        `NaN`和`None`在Pandas都可以使用，而且Pandas基本上将两者进行等同处理，
+        可以在合适的情况下互相转换
+        '''
+        n = pd.Series(range(2),dtype=int)
+        n[0] = None
+        '''
+        对于哪些没有通用哨兵值的类型，Pandas在发现出现了NA值的情况下会自动对它们进行类型转换。
+        例如，如果我们在一个整数数组中设置了一个`np.nan`值，整个数组会自动向上扩展为浮点类型
+        '''
+        '''
+        下表列出了Pandas在出现NA值的时候向上类型扩展的规则：
+
+        |大类型     | 当NA值存在时转换规则 | NA哨兵值      |
+        |--------------|-----------------------------|------------------------|
+        | ``浮点数`` | 保持不变                   | ``np.nan``             |
+        | ``object``   | 保持不变                   | ``None`` 或 ``np.nan`` |
+        | ``整数``  | 转换为``float64``         | ``np.nan``             |
+        | ``布尔``  | 转换为``object``          | ``None`` 或 ``np.nan`` |
+        '''
+
+        data = pd.Series([1,np.nan,'Hello',None])
+        data.isnull()
+        '''
+        - `isnull()`：生成一个布尔遮盖数组指示缺失值的位置
+        - `notnull()`：`isnull()`相反方法
+        '''
+        data[data.notnull()]
+        '''
+        布尔遮盖数组可以直接在`Series`或`DataFrame`对象上作为索引使用
+        '''
+        data.dropna()
+
+        df = pd.DataFrame([[1,2,np.nan]
+                           ,[2,3,5]
+                            ,[np.nan,5,6]])
+        '''
+        我们不能在`DataFrame`中移除单个空值；
+        我们只能移除整行或者整列
+        默认，`dropna()`会移除出现了空值的整行
+        '''
+        df.dropna()
+        df.dropna(axis='columns')
+        '''
+        希望移除那些*全部*是NA值或者大部分是NA值的行或列。
+        这可以通过设置`how`或`thresh`参数来实现，
+        它们可以更加精细地控制移除的行或列包含的空值个数
+        '''
+        '''
+        默认的情况是`how='any'`，
+        因此任何行或列只要含有空值都会被移除。
+        你可以将它设置为`how=all`，
+        这样只有那些行或列*全部*由空值构成的情况下才会被移除
+        '''
+        df[3] = np.nan
+        df.dropna(axis=1,how='all')
+        '''
+        `thresh`参数可以让你指定结果中每行或列至少包含
+        非空值的个数
+        '''
+        df.dropna(axis='index',thresh=3) # 行中如果有3个或以上的非空值，将会被保留
+        data = pd.Series([1,np.nan,2,None,3],index=list('abcde'))
+        data.fillna(0)
+        '''
+        可以指定填充的方法，如向前填充，将前一个值传播到下一个空值
+        '''
+        data.fillna(method='ffill')
+        '''
+        向后填充，使用后一个有效值传播到前一个空值
+        '''
+        data.fillna(method='bfill')
+
+        df.fillna(axis='columns', method='ffill') # 按列进行向前填充
+        '''
+        如果空值的前面没有值（此处的`df.loc[2, 0]`前面已经没有列，
+        沿着列填充），那么NA值将会保留下来
+        '''
+        df.fillna(axis=0, method='bfill',inplace=True)
+
+
+
+
+
+
 
 
         
