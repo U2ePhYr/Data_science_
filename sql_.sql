@@ -130,6 +130,24 @@ from employees
 select ceil(avg(salary) - avg(replace(salary,'0','')))
 from employees
 
+'''
+Write a query to find the maximum total earnings for all employees as well as the total number of employees who have maximum total earnings
+'''
+select max(months*salary), count(*)
+from Employee
+group by months*salary
+order by months*salary desc
+limit 1
+
+《==》
+
+select months*salary, count(*)
+from Employee
+group by months*salary
+order by months*salary desc
+limit 1
+
+
 
 
 
