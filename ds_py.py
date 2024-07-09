@@ -1228,6 +1228,316 @@ def get_pandas():
         '''
         df.fillna(axis=0, method='bfill',inplace=True)
 
+        # 7.3
+        import pandas as pd
+        import numpy as np
+
+        pd.MultiIndex(levels=[['a', 'b'], [1, 2]],
+              codes=[[0, 0, 1, 1], [0, 1, 0, 1]])
+        
+        index = [('California', 2000), ('California', 2010),
+                 ('New York', 2000), ('New York', 2010),
+                 ('Texas', 2000), ('Texas', 2010)]
+        populations = [33871648, 37253956,
+               18976457, 19378102,
+               20851820, 25145561]
+        pop = pd.Series(populations,index=index)
+
+        pop[('California', 2000):('New York', 2010)]
+        pop.index
+        pop[[('New York', 2000),('Texas', 2010)]]
+        
+        pop[[i for i in pop.index if i[1] == 2000]]
+        '''
+        Pandas`MultiIndex`类型提供了我们需要的真正的多重索引功能
+        '''
+        '''
+        按照下面的方式从元组创建一个多重索引
+        '''
+        index = pd.MultiIndex.from_tuples(index)
+        '''
+        如果我们使用这个`MultiIndex`对我们的series进行重新索引，
+        我们可以看到这个数据集的层级展示
+        '''
+        pop = pop.reindex(index)
+        '''
+        在多重索引展示中，缺失的索引值数据表示它与上一行具有相同
+        的值
+        '''
+        '''
+        Series索引针对行，Dataframe索引针对列
+        '''
+        s = pd.Series(([[1,2,3],[2,3,4],[4,6,8]]),index=pd.MultiIndex.from_tuples([(1,'a'),(2,'b'),(3,'b')]))
+        s[:,'b']
+        '''
+        使用这个`MultiIndex`对我们的series进行重新索引，
+        现在想要获取第二个索引值为2010年的数据，
+        只需要简单的使用Pandas的切片语法即可
+        '''
+        pop[:,2000]
+        '''
+        Pandas已经内建了这种等同的机制。
+        `unstack()`方法可以很快地将多重索引的`Series`转换成普通索引
+        的`DataFrame`
+        '''
+        pop_df = pop.unstack()
+        '''
+        `stack()`方法提供了相反的操作
+        '''
+        pop_df.stack()
+        # 7.8
+        '''
+        每个多重索引中的额外层次都代表着数据中额外的维度；
+        利用这点我们可以灵活地详细地展示我们的数据，
+        例如我们希望在上面各州各年人口数据的基础上增加一列
+        （比方说18岁以下人口数）；使用`MultiIndex`能很简单的为`DataFrame`
+        增加一列
+        '''
+        pop_df = pd.DataFrame({'Total':pop,
+                               'under18':[9267089, 9284094,
+                                   4687374, 4318033,
+                                   5906301, 6879014]})
+        '''
+        所有在[在Pandas中操作数据]中介绍过的ufuncs和其他功能也可以应用到层次化索引数据上
+        '''
+        f_u18 = pop_df['under18'] / pop_df['Total']
+        f_u18.unstack()
+        '''
+        允许我们能简单和迅速的操作数据，甚至是高维度的数据
+        '''
+        '''
+        最直接的构建多重索引`Series`或`DataFrame`的方式是向index参数传递一个多重列表
+        np.random.rand(d0, d1, ..., dn) 可以生成一个给定形状的数组，数组中的元素服从 [0, 1) 之间的均匀分布
+        '''
+        df = pd.DataFrame(np.random.rand(4,2)
+                          ,index=[['a','a','b','b'],[1,1,0,0]]
+                          ,columns=['data1','data2'])
+        '''
+        创建`MultiIndex`的工作会自动完成
+        如果你使用元组作为关键字的字典数据传给Series，
+        Pandas也会自动识别并默认使用`MultiIndex`
+        '''
+        data = {('California', 2000): 33871648,
+            ('California', 2010): 37253956,
+            ('Texas', 2000): 20851820,
+            ('Texas', 2010): 25145561,
+            ('New York', 2000): 18976457,
+            ('New York', 2010): 19378102}
+        pd.Series(data)
+        '''
+        有时候显式地创建`MultiIndex`对象也是很有用的
+        '''
+        '''
+        当你需要更灵活地构建多重索引时，你可以使用`pd.MultiIndex`的构造器。
+        例如，你可以使用多重列表来构造一个和前面一样的`MultiIndex`对象
+        '''
+        pd.MultiIndex.from_arrays([['a','a','b','b'],[1,2,1,2]])
+        pd.MultiIndex.from_tuples([('a',1),('a',2),('b',1),('b',2)])
+        '''
+        用两个单一索引的笛卡尔乘积来构造
+        '''
+        pd.MultiIndex.from_product([['a','b'],[1,2]])
+        '''
+        你可以用`MultiIndex`构造器来构造多重索引，你需要传递`levels`
+        （多重列表包括每个层次的索引值）和`labels`
+        （多重列表包括数据点的标签值）参数
+        '''
+        pd.MultiIndex(levels=[['a','b'],[1,2]],codes=[[1,0],[0,1]])
+        '''
+        Given an array of integers, find the longest subarray where the absolute difference between any two elements is less than or equal to 1.
+        '''
+        def pickingNumbers(a):
+            longest_ = 0
+    
+            for i in list(set(a)):
+                curr = sum(map(lambda x: 1, filter(lambda x: i == x, a)))
+                below = sum(map(lambda x: 1, filter(lambda x: (i - 1) == x, a)))
+                above = sum(map(lambda x: 1, filter(lambda x: (i + 1) == x, a)))
+                longest_ = max(curr + below, curr + above, longest_)
+            return longest_
+        '''
+        对于每个元素num,计算以下三个值：
+            same:在列表a中等于num的元素个数。
+            below:在列表a中等于num-1的元素个数。
+            above:在列表a中等于num+1的元素个数。
+        更新max_subset的值，使其等于当前的max_subset、same+below和same+above三者中的较大值
+        '''
+        '''
+        lambda x: 1:这是一个匿名函数，接受一个参数x,并返回1。
+        filter(lambda x: x==num, a):这是Python内置的filter函数，它接受两个参数。
+        第一个参数是一个函数，用于测试序列中的每个元素是否满足条件；
+        第二个参数是一个可迭代对象(如列表、元组等)。filter函数会返回一个迭代器，
+        其中包含满足条件的元素
+        '''
+        '''
+        map()是Python中的一个内置函数，用于将一个函数应用于一个可迭代对象的所有元素，如列表、元组等
+        map(lambda x: 1, ...)将使用另一个匿名函数lambda x: 1对筛选后的列表进行映射操作，将每个元素都替换为整数1
+        '''
+        '''
+        set() 是 Python 中的一个内置函数，用于创建一个无序且不重复的元素集合
+        '''
+        # 7.9
+        pd.MultiIndex(levels=[['a','b'],[1,2]],codes=[[1,1,0,0],[0,1,0,1]])
+        '''
+        levels和codes是为了确定多级索引的对应关系。
+        levels的第一级列表[‘a’,‘b’]，对应codes的[0,0,1,1]，codes中是0代表’a’的位置，1代表‘b’的位置。
+        leves的第二级列表[1,2]，对应codes的[0,1,0,1]，codes中的0代表1的位置，1代表2的位置。
+        两级位置确定后，根据codes位置可绘制标识
+        '''
+        '''
+        这些对象都能作为`index`参数传递给`Series`或`DataFrame`构造器使用，
+        或者作为`reindex`方法的参数提供给`Series`或`DataFrame`对象进行重新索引
+        '''
+        '''
+        给`MultiIndex`的不同层次进行命名。这可以通过在上面的`MultiIndex`构造方法中
+        传递`names`参数，或者创建了之后通过设置`names`属性来实现
+        '''
+        pop.index.names = ['state','year']
+        '''
+        在复杂的数据集中，这种命名方式让不同的索引值保持它们原本的意义
+        '''
+        '''
+        在一个`DataFrame`中，行和列是完全对称的，就像前面看到的行可以有多层次的索引，
+        列也可以有多层次的索引
+        '''
+        index = pd.MultiIndex.from_product([[2013,2014],[1,2]],names=['year','visit'])
+        columns = pd.MultiIndex.from_product([['Bob', 'Guido', 'Sue'], ['HR', 'Temp']],names=['subject','type'])
+        
+        data = np.round(np.random.randn(4,6),1)
+        data[:, ::2] *= 10
+        data += 37
+
+        health_data = pd.DataFrame(data,index=index,columns=columns)
+        '''
+        上面的数据集实际上是一个四维的数据，四个维度分别是受试者、测试类型、
+        年份和测试编号。创建了这个`DataFrame`之后，
+        我们可以使用受试者的姓名来很方便的获取到此人的所有测试数据
+        '''
+        health_data['Bob']
+        '''
+        对于这种包含着多重标签的多种维度（人、国家、城市等）数据。
+        使用这种层次化的行和列的结构会非常方便
+        '''
+        '''
+        在`MultiIndex`上进行检索和切片设计的非常直观，
+        你可以将其想象为在新增的维度上进行检索
+        '''
+        pop['California',2000]
+        '''
+        即仅在索引中检索其中的一个层次。得到的结果是另一个`Series`但是
+        具有更少的层次结构
+        '''
+        pop['California']
+        '''
+        部分切片同样也是支持的，只要`MultiIndex`是排序的
+        '''
+        pop['California':'Texas']
+        '''
+        在有序索引的情况下，部分检索也可以用到低层次的索引上，
+        只需要在第一个索引位置传递一个空的切片即可
+        '''
+        pop[:,2010]
+        pop[pop > 22000000]
+        pop[['California','Texas']]
+        '''
+        请注意`DataFrame`中主要的索引是列
+        '''
+        health_data['Guido','HR']
+        health_data.iloc[:2,:2]
+        health_data.loc[:,('Bob','HR')]
+        '''
+        使用这种索引元组并不是特别的方便；例如试图在元组中使用切片会产生一个语法错误
+        '''
+        health_data.loc[(:, 1), (:, 'HR')]
+        '''
+        解决上述问题的方法有一个更好的方式是使用`IndexSlice`对象，
+        该对象是Pandas专门为这种情况准备的
+        '''
+        idx = pd.IndexSlice
+        health_data.loc[idx[:,1],idx[:,'HR']]
+        '''
+        访问多重索引的`Series`和`DataFrame`对象中的数据有很多种方法，
+        除了阅读本书中介绍的这些工具外，熟悉它们的最好方式就是在实践中使用它们
+        '''
+        '''
+        这里我们要强调一下。*如果索引是无序的话，很多`MultiIndex`的切片操作都会失败*
+        '''
+        index = pd.MultiIndex.from_product([['a','c','b'],[1,2]])
+        data = pd.Series(np.random.rand(6),index=index)
+        data.index.names = ['char','int']
+
+        try:
+            data['a':'b']
+        except KeyError as e:
+            print(type(e))
+            print(e)
+        '''
+        这是MultiIndex没有排序的结果。许多因素决定了，当对`MultiIndex`进行部分
+        的切片和其他相似的操作时，都需要索引是有序（或者说具有自然顺序）的。
+        Pandas提供了方法来对索引进行排序；例如`DataFrame`对象的`sort_index()`
+        和`sortlevel()`方法。我们在这里使用最简单的`sort_index()`方法
+        '''
+        data = data.sort_index()
+        data['a':'b']
+        '''
+        将一个堆叠的多重索引的数据集拆分成一个简单的二维形式，
+        还可以指定使用哪个层次进行拆分
+        '''
+        pop.unstack(level=0)
+        pop.unstack(level=1)
+        '''
+        `unstack()`的逆操作是`stack()`，我们可以使用它来重新堆叠数据集
+        '''
+        pop.unstack().stack()
+        '''
+        还有一种重新排列层次化数据的方式是将行索引标签转为列索引标签；
+        这可以使用`reset_index`方法来实现,为了清晰起见，我们可以设置列的标签
+        '''
+        pop_flat = pop.reset_index(name='population')
+        '''
+        通常当我们处理真实世界的数据的时候，我们看到的就会是如上的数据集的形式，
+        因此从列当中构建一个`MultiIndex`会很有用。
+        这可以通过在`DataFrame`上使用`set_index`方法来实现，
+        这样会返回一个多重索引的`DataFrame`
+        '''
+        pop_flat.set_index(['state','year'])
+        '''
+        前面我们已经了解到Pandas有內建的数据聚合方法，例如`mean()`、`sum()`和
+        `max()`。对于层次化索引的数据而言，这可以通过传递`level`参数来控制数据
+        沿着哪个层次的索引来进行计算
+        '''
+        '''
+        将每年测量值进行平均。我们可以用level参数指定我们需要进行聚合的标签，
+        这里是年份
+        '''
+        data_mean = health_data.mean(level='year')
+        data_mean.mean(axis=1,level='type')
+        '''
+        虽然只有两行代码，我们已经能够计算得到所有受试者每年多次测试取样的平均的心率和提问。
+        这个语法实际上是`GroupBy`函数的一种简略写法，我们会在[聚合和分组]一节中详细介绍。
+        虽然这只是一个模拟的数据集，但是很多真实世界的数据集也有相似的层次化结构
+        '''
+        '''
+        Panel结构，因为作者认为在大多数情况下多重索引会更加有用，在表现高维数据时概念也会显得更加简单。
+        而且更加重要的是，面板数据从基本上来说是密集数据，而多重索引从基本上来说是稀疏数据。
+        随着维度数量的增加，使用密集数据方式表示真实世界的数据是非常的低效的。
+        但是对于一些特殊的应用来说，这些结构是很有用的。
+        '''
+
+
+
+
+
+
+
+
+        
+
+
+    
+
+
+
 
 
 
