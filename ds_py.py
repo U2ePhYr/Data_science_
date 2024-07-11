@@ -1448,7 +1448,7 @@ def get_pandas():
         '''
         使用这种索引元组并不是特别的方便；例如试图在元组中使用切片会产生一个语法错误
         '''
-        health_data.loc[(:, 1), (:, 'HR')]
+        # health_data.loc[(:, 1), (:, 'HR')]
         '''
         解决上述问题的方法有一个更好的方式是使用`IndexSlice`对象，
         该对象是Pandas专门为这种情况准备的
@@ -1524,8 +1524,254 @@ def get_pandas():
         但是对于一些特殊的应用来说，这些结构是很有用的。
         '''
 
+        # 7.10
+        '''
+        很多对数据进行的有趣的研究都来源自不同数据源的组合。
+        这些组合操作包括很直接的连接两个不同的数据集，
+        到更复杂的数据库风格的联表和组合可以正确的处理数据集之间的重复部分。
+        `Series`和`DataFrame`內建了对这些操作的支持，
+        Pandas提供的函数和方法能够让这种数据操作高效而直接。
+        '''
+        import numpy as np
+        import pandas as pd
+
+        def make_df(cols, ind):
+            data = {c: [str(c) + str(n) for n in ind] for c in cols}
+            return pd.DataFrame(data,index=ind)
+        
+        make_df('ABC',range(3))
+
+        dic_ = {1: 'A', 2: 'B'}
+        index = [0]
+        dic__ = {'A': 1, 'B': 2}
+        pd.DataFrame(dic_,index=index)
+
+        class display(object):
+            """多个对象的HTML格式展示"""
+            template = """<div style="float: left; padding: 10px;">
+            <p style='font-family:"Courier New", Courier, monospace'>{0}</p>{1}
+            </div>"""
+            def __init__(self, *args):
+                self.args = args
+                
+            def _repr_html_(self):
+                return '\n'.join(self.template.format(a, eval(a)._repr_html_())
+                                    for a in self.args)
+
+            def __repr__(self):
+                return '\n\n'.join(a + '\n' + repr(eval(a))
+                                    for a in self.args)
+        '''
+        `Series`和`DataFrame`对象的连接与NumPy数组的连接非常相似，
+        NumPy数组我们可以通过`np.concatenate`函数来实现
+        '''
+        x = [1,2,3]
+        y = [4,5,6]
+        z = [7,8,9]
+        np.concatenate((x,y,z))
+        '''
+        第一个参数是需要进行连接的数组的元组或列表。
+        函数还可以提供一个`axis`关键字参数来指定沿着哪个维度方向对数组进行连接
+        '''
+        x = [[1,2]
+             ,[3,4]]
+        np.concatenate((x,x),axis=0)
+        '''
+        Pandas有相应的函数`pd.concat()`，与`np.concatenate`有着相似的语法，
+        但是有一些参数我们需要深入讨论：
+        ```python
+        # Pandas v0.24.2的函数签名
+        pd.concat(
+            objs,
+            axis=0,
+            join='outer',
+            join_axes=None,
+            ignore_index=False,
+            keys=None,
+            levels=None,
+            names=None,
+            verify_integrity=False,
+            sort=None,
+            copy=True,
+        )
+        '''
+        '''
+        `pd.concat()`可以用来对`Series`或`DataFrame`对象进行简单的连接，
+        就像可以用`np.concatenate()`来对数组进行简单连接一样
+        '''
+        sers_1 = pd.Series(['A','B','C'], index=[1,2,3])
+        sers_2 = pd.Series(['D','E','F'], index=[4,5,6])
+        pd.concat([sers_1,sers_2])
+
+        df_1 = make_df('AB', [1,2])
+        df_2 = make_df('BC', [3,4])
+        display('df_1','df_2','pd.concat((df_1,df_2))')
+        '''
+        默认情况下，连接会按照`DataFrame`的行来进行（即`axis=0`）。
+        就像`np.concatenate`那样，`pd.concat`允许指定沿着哪个维度方向进行连接
+        '''
+        df_3 = make_df('AB', [0,1])
+        df_4 = make_df('CD', [0,1])
+        display('df_3','df_4',"pd.concat((df_3,df_4),axis='columns')")
+        '''
+        也可以使用相同的声明方式`axis=1`；这里我们使用了更加直观的方式`axis='columns'`
+        '''
+        '''
+        `np.contenate`和`pd.concat`的一个重要区别是Pandas的连接会*保留行索引*，
+        甚至在结果中包含重复索引的情况下
+        '''
+        df_1 = make_df('AB', [1,2])
+        df_2 = make_df('AB', [3,4])
+        df_2.index = df_1.index
+        display('df_1', 'df_2', 'pd.concat((df_1,df_2))')
+        '''
+        看到结果中的重复索引。虽然这是`DataFrame`允许的，
+        但是结果通常不是你希望的。`pd.concat()`提供了一些处理这个问题的方法
+        '''
+        '''
+        验证`pd.concat()`结果数据集中是否含有重复的索引，
+        你可以传递参数`verify_integrity=True`参数。
+        这时连接结果的数据集中如果存在重复的行索引，将会抛出一个错误
+        '''
+        try:
+            pd.concat([df_1,df_2],verify_integrity=True)
+        except ValueError as e:
+            print(e)
+        '''
+        有些情况下，索引本身并不重要，那么可以选择忽略它们。
+        给函数传递一个`ignore_index=True`的参数，
+        `pd.concat`函数会忽略连接时的行索引，
+        并在结果中重新创建一个整数的索引值
+        '''
+        display('df_1','df_2','pd.concat([df_1,df_2],ignore_index=True)')
+        '''
+        还有一种方法是使用`keys`参数来指定不同数据集的索引标签；
+        这时`pd.concat`的结果会是包含着连接数据集的多重索引数据集
+        '''
+        df = pd.concat([df_1,df_2],keys=['df_1','df_2'])
+        df[['B','A']]
+        flat_df = df.unstack(level=0)
+        '''
+        在实际情况中，从不同源得到的数据通常具有不同的列数或者列标签，
+        `pd.concat`提供了几个相应的参数帮助我们完成上面的任务。
+        下例中的两个数据集只有部分（非全部）列和标签相同
+        '''
+        df5 = make_df('ABC', [1, 2])
+        df6 = make_df('BCD', [3, 4])
+        display('df5', 'df6', 'pd.concat([df5, df6])')
+        '''
+        默认情况下，那些对应源数据集中不存在的元素值，将被填充为NA值。
+        如果想改变默认行为，我们可以通过指定`join`和`join_axes`参数来实现。
+        `join`参数默认为`join='outer'`，就像我们上面看到的情况，结果是数据集的并集；
+        如果将`join='inner'`传递给`pd.concat`，
+        那么就会是数据源中相同的列保留在结果中，因此结果是数据集的交集
+        '''
+        display('df5','df6', "pd.concat([df5, df6], join='inner')")
+        '''
+        可以通过另一个方法`reindex`来指定结果中保留的列，
+        该参数接受被保留索引标签的列表。
+        下例中我们指定结果中的列和第一个进行连接的数据集完全相同
+        '''
+        '''
+        可以通过`reindex`方法达到同样的目的，下面使用了`reindex`语法保留了`df5`的所有列
+        '''
+        display('df5','df6', 'pd.concat([df5, df6]).reindex(df5.columns,axis=1)')
+        '''
+        `pd.concat`函数的参数很多，组合使用它们能解决组合多个数据集中的很多问题；
+        请记住当你在自己的数据上操作时，你可以灵活地应用它们，完成你的工作目标
+        '''
+        '''
+        `Series`和`DataFrame`对象都有一个`append`方法，
+        它能完成和`pd.concat`一样的功能，并能让让你写代码时节省几次敲击键盘的动作
+        '''
+        display('df_1', 'df_2', 'df_1.append(df_2)')
+        '''
+        Pandas中的`append()`方法不会修改原始参与运算的数据集，有需要连接多个数据集时，
+        应该避免多次使用`append`方法，而是将所有需要进行连接的数据集形成一个列表，
+        并传递给`concat`函数来进行连接操作
+        '''
+        # 一些易犯错误
+        import pandas as pd
+        import numpy as np
+
+        # data = [(1,2),(3,4)]
+        data = {1: 'a', 2: 'b', 1: 'c', 2: 'd'}
+        index = range(2)
+        df = pd.DataFrame(data,index=index)
+        '''
+        有时建立df时需要指定index，不然会报If using all scalar values,
+        you must pass an index
+        '''
+        data.items()
+        '''
+        dict.items() 是 Python 字典对象的一个方法，
+        它返回一个包含字典中所有键值对的视图对象。每个元素都是一个元组，
+        其中第一个元素是键，第二个元素是对应的值
+        '''
+        '''
+        这个错误是因为在使用pd.DataFrame()创建DataFrame时，
+        传入的字典中所有值都是标量(即单个数值),但是没有提供索引。
+        要解决这个问题，可以在创建DataFrame时传入一个索引
+        '''
+        '''
+        这个错误是因为在创建pandas的Index对象时，传入了一个字符串'ABC',
+        而不是一个集合类型。要解决这个问题，
+        需要确保传入的数据是一个集合类型，例如列表、元组或数组等
+        '''
+        # 7.11 alg问题
+        '''
+        6
+        100 90 90 80 75 60
+        5
+        50 65 77 90 102
+        11
+        102 100 90 90 90 80 77 75 65 60 55
+        1 2 3 3 3 4 5 6 7 8 9
+
+        result: 6,5,4,2,1 原因：已考虑元素比较有顺序，但输出报错
+        '''
 
 
+        def climbingLeaderboard(ranked, player):
+            count = 1
+            final = []
+
+            for pl in player:
+                total_l = ranked.append(pl)
+                total_l.sort(reverse=True)
+                index = []
+                value = []
+                total_s = list(set(total_l))
+                total_s.sort(reverse=True)
+
+                for i in total_s:
+                    count += 1 if len(index) != 0 else count
+                    print(count)
+                    for j in total_l:
+                        if i == j:
+                            index.append(count)
+                            value.append(j)
+
+                dic_ = {}
+
+                for n in range(len(value)):
+                    dic_[value[n]] = index[n]
+
+                final.append(dic_.get(pl))
+
+                ranked = ranked.append(pl)
+
+                print(index)
+                print(value)
+                print(player)
+            
+            return final
+
+
+        climbingLeaderboard(ranked=[100,90,90,80,75,60],player=[50,65,77,90,102])
+
+
+        
 
 
 
