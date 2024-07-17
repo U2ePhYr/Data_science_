@@ -1718,57 +1718,166 @@ def get_pandas():
         而不是一个集合类型。要解决这个问题，
         需要确保传入的数据是一个集合类型，例如列表、元组或数组等
         '''
-        # 7.11 alg问题
         '''
-        6
-        100 90 90 80 75 60
-        5
-        50 65 77 90 102
-        11
-        102 100 90 90 90 80 77 75 65 60 55
-        1 2 3 3 3 4 5 6 7 8 9
+        An arcade game player wants to climb to the top of the leaderboard and track their ranking.
+        The game uses Dense Ranking. so itsleaderboard works like this:
+            The player with the highest score is ranked number 1 on the leaderboard.
+            Plavers who have equal scores receive the same ranking number, 
+            and the next player(s) receive the immediately folowing rankingnumber.
+        
+        Example:
+            ranked =[100,90,90,80]
+            player =「70,80,105]
+            The ranked players will have ranks 1.2. 2. and 3, respectively. 
+            lf the player's scores are 70, 80 and 105. their rankings after each gameare 4th, 
+            3rd and 1st . Retum [4, 3, 1].
 
-        result: 6,5,4,2,1 原因：已考虑元素比较有顺序，但输出报错
+        The existing leaderboard, ranked, is in descending order.
+        The player's scores, player, are in ascending order.
         '''
+        def climbingLeaderboard(ranked, player): 
+            ranked = sorted(list(set(ranked)),reverse=True)
 
+            l = len(ranked)
+            result = []
 
-        def climbingLeaderboard(ranked, player):
-            count = 1
-            final = []
-
-            for pl in player:
-                total_l = ranked.append(pl)
-                total_l.sort(reverse=True)
-                index = []
-                value = []
-                total_s = list(set(total_l))
-                total_s.sort(reverse=True)
-
-                for i in total_s:
-                    count += 1 if len(index) != 0 else count
-                    print(count)
-                    for j in total_l:
-                        if i == j:
-                            index.append(count)
-                            value.append(j)
-
-                dic_ = {}
-
-                for n in range(len(value)):
-                    dic_[value[n]] = index[n]
-
-                final.append(dic_.get(pl))
-
-                ranked = ranked.append(pl)
-
-                print(index)
-                print(value)
-                print(player)
+            for p in player:
+                while (l > 0) and (p >= ranked[l - 1]):
+                    l -= 1
+                
+                result.append(l + 1)
             
-            return final
+            return result
+        # 7.17
+        '''
+        Pandas提供的一个基本的特性就是它的高性能、内存中进行的联表和组合操作。
+        如果你使用过数据库，你应该已经很熟悉相关的数据操作了。
+        Pandas在这方面提供的主要接口是`pd.merge`函数
+        '''
+        import pandas as pd
+        import numpy as np
 
-
-        climbingLeaderboard(ranked=[100,90,90,80,75,60],player=[50,65,77,90,102])
+        class display(object):
+            """Display HTML representation of multiple objects"""
+            template = """<div style="float: left; padding: 10px;">
+            <p style='font-family:"Courier New", Courier, monospace'>{0}</p>{1}
+            </div>"""
+            def __init__(self, *args):
+                self.args = args
+                
+            def _repr_html_(self):
+                return '\n'.join(self.template.format(a, eval(a)._repr_html_())
+                                for a in self.args)
+            
+            def __repr__(self):
+                return '\n\n'.join(a + '\n' + repr(eval(a))
+                                for a in self.args)
+        '''
+        `pd.merge()`实现的是我们称为*关系代数*的一个子集，
+        关系代数是一系列操作关系数据的规则的集合，它构成了大部分数据库的数学基础
+        '''
+        '''
+        `pd.merge()`函数实现了几种不同类型的联表：*一对一*、*多对一*和*多对多*。
+        所有三种类型的联表都可以通过`pd.merge()`函数调用来实现；
+        具体使用了哪种类型的联表取决于输入数据的格式。
+        '''
+        '''
+        最简单的联表操作类型就是一对一连接，在很多方面，
+        这种联表都和我们在[组合数据集：Concat 和 Append]中看到的按列进行数据集
+        连接很相似
+        '''
+        df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],
+                           'group': ['Accounting', 'Engineering', 'Engineering', 'HR']})
+        df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],
+                           'hire_date': [2004, 2008, 2012, 2014]})
+        display('df1','df2')
+        df3 = pd.merge(df1,df2)
+        '''
+        `pd.merge()`函数会自动识别每个`DataFrame`都有"employee"列，
+        因此会自动按照这个列作为键对双方进行合并。
+        合并的结果通常会丢弃了原本的行索引标签，除非在合并时制定了行索引
+        '''
+        '''
+        多对一联表的情况发生在两个数据集的关键字列上的其中一个含有重复数据的时候。
+        在这种多对一的情况下，结果的`DataFrame`会正确的保留那些重复的键值
+        '''
+        df4 = pd.DataFrame({'group': ['Accounting', 'Engineering', 'HR'],
+                            'supervisor':['Carly', 'Guido', 'Steve']})
+        display('df3','df4','pd.merge(df3,df4)')
+        '''
+        结果的`DataFrame`多了一列`supervisor`，上面的数据也是按照`group`的
+        重复情况进行重复的
+        '''
+        '''
+        如果左右的数据集在关键字列上都有重复数据，那么结果就是一个多对多的组合
+        '''
+        df5 = pd.DataFrame({'group': ['Accounting', 'Accounting',
+                              'Engineering', 'Engineering', 'HR', 'HR'],
+                            'skill': ['math', 'spreadsheets', 'coding', 'linux',
+                               'spreadsheets', 'organization']})
+        display('df1','df5','pd.merge(df1,df5)')
+        '''
+        在实践中，数据集极少好像我们上面的例子那样干净。`pd.merge()`提供的一些参数，
+        能精细的对连接操作进行调整
+        '''
+        '''
+        通常情况下，列名并不会这么匹配，`pd.merge()`提供了一系列的参数来处理这种情况
+        '''
+        '''
+        你可以使用`on`关键字参数明确指定合并使用的关键字列名，
+        参数可以是一个列名或者一个列名的列表
+        '''
+        display('df1','df2',"pd.merge(df1,df2,on='employee')")
+        '''
+        该参数仅在左右两个`DataFrame`都含有相同的指定列名的情况下有效
+        '''
+        '''
+        使用不同列名来合并两个数据集的情况下；例如，我们有一个数据集，
+        在它里面员工姓名的列名不是"employee"而是"name"。在这种情况下，
+        我们可以使用`left_on`和`right_on`关键字来分别指定两个列的名字
+        '''
+        df3 = pd.DataFrame({'name':['Bob', 'Jake', 'Lisa', 'Sue'],
+                            'salary':[70000, 80000, 120000, 90000]})
+        display('df1','df3',"pd.merge(df1,df3,left_on='employee',right_on='name')")
+        '''
+        结果中有一个冗余的列，我们可以将该列移除，例如使用`DataFrame`的`drop()`方法
+        '''
+        pd.merge(df1,df3,left_on='employee',right_on='name').drop('name',axis=1)
+        '''
+        有时候，你不是需要按列进行合并，而是需要按照行索引进行合并
+        '''
+        df1a = df1.set_index('employee')
+        df2a = df2.set_index('employee')
+        display('df1a','df2a')
+        '''
+        通过指定`left_index`和`right_index`标志参数，你可以将两个数据集
+        按照行索引进行合并
+        '''
+        display('df1a','df2a','pd.merge(df1a,df2a,left_index=True,right_index=True)')
+        '''
+        为了方便，`DataFrame`实现了`join()`方法，默认按照行索引合并数据集
+        '''
+        display('df1a','df2a','df1a.join(df2a)')
+        '''
+        如果需要混合的进行行或列的合并，你可以通过混合指定`left_index`和
+        `right_on`参数或者`left_on`和`right_index`参数来实现
+        '''
+        display('df1a','df3','pd.merge(df1a,df3,left_index=True,right_on="name")')
+        '''
+        所有上面的参数都能应用到多重行索引和/或多重列上
+        '''
+        '''
+        在上面的例子中，我们都忽略了在进行数据集合并时一个重要的内容：
+        合并时所使用的集合算术运算类型。这部分内容对于当一个数据集的键值在
+        另一个数据集中不存在时很有意义
+        '''
+        df6 = pd.DataFrame({'name':[],
+                            'food':[]})
+        df7 = pd.DataFrame({'name':[],
+                           'drink':[]})
+        
+        
+        
 
 
         
