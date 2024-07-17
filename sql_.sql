@@ -147,6 +147,10 @@ group by months*salary
 order by months*salary desc
 limit 1
 
+'''
+Query the smallest Northern Latitude (LAT_N) from STATlON that is greater than 38.7780. Round your answer to 4 decimal places.
+'''
+select round(lat_n,4) from station where lat_n > 38.7780 order by lat_n limit 1
 
 
 
