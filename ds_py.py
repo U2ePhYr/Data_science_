@@ -1871,12 +1871,178 @@ def get_pandas():
         合并时所使用的集合算术运算类型。这部分内容对于当一个数据集的键值在
         另一个数据集中不存在时很有意义
         '''
-        df6 = pd.DataFrame({'name':[],
-                            'food':[]})
-        df7 = pd.DataFrame({'name':[],
-                           'drink':[]})
+        df6 = pd.DataFrame({'name':['Peter', 'Paul', 'Mary'],
+                            'food':['fish', 'beans', 'bread']},
+                            columns=['name','food'])
+        df7 = pd.DataFrame({'name':['Mary', 'Joseph'],
+                           'drink':['wine', 'beer']},
+                           columns=['name','drink'])
+        display('df6','df7','pd.merge(df6,df7)')
+        '''
+        上面我们合并的两个数据集在关键字列上只有一个"name"数据是共同的：Mary。
+        默认情况下，结果会包含两个集合的*交集*；这被称为*内连接*。
+        我们显式的指定`how`关键字参数，它的默认值是`"inner"`
+        '''
+        pd.merge(df6,df7,how='inner')
+        '''
+        `how`参数的其他选项包括`'outer'`、`'left'`和`'right'`。
+        *外连接outer*会返回两个集合的并集，并将缺失的数据填充为Pandas的NA值
+        '''
+        pd.merge(df6,df7,how='outer')
+        '''
+        *左连接left*和*右连接right*返回的结果是包括所有的左边或右边集合
+        '''
+        pd.merge(df6,df7,how='left')
+        '''
+        结果中的行与左集合保持一致。使用`how='right'`结果会和右集合保持一致。
+        所有这些集合运算类型可以和前面的连接类型组合使用
+        '''
+        df8 = pd.DataFrame({'name':['Bob', 'Jake', 'Lisa', 'Sue'],
+                            'rank':[1, 2, 3, 4]})
+        df9 = pd.DataFrame({'name':['Bob', 'Jake', 'Lisa', 'Sue'],
+                           'rank':[3, 1, 4, 2]})
+        display('df8','df9','pd.merge(df8,df9,on="name")')
+        '''
+        因为结果可能会有两个相同的列名，发生冲突，merge函数会自动为这两个列
+        添加`_x`和`_y`后缀，使得输出结果每个列名称唯一。如果默认的后缀不是
+        你希望的，可以使用`suffixes`关键字参数为输出列添加自定义的后缀
+        '''
+        display('df8','df9','pd.merge(df8,df9,on="name",suffixes=["_L","_R"])')
+        '''
+        这些后缀可以应用在所有的连接方式中，也可以在多个列冲突时使用
+        '''
+        '''
+        合并及联表操作在你处理多个不同数据来源时会经常出现
+        '''
+
+        pop = pd.read_csv(r'F:\git\notebooks\data\state-population.csv')
+        areas = pd.read_csv(r'F:\git\notebooks\data\state-areas.csv')
+        abbrevs = pd.read_csv(r'F:\git\notebooks\data\state-abbrevs.csv')
+
+        display('pop.head()','areas.head()','abbrevs.head()')
+        '''
+        需要计算一个相对非常直接的结果：根据美国各州2010年人口密度进行排名
+        '''
+        merged = pd.merge(pop,abbrevs,left_on='state/region',right_on='abbreviation',
+                          how='outer')
+        merged.drop('abbreviation',axis=1,inplace=True)
+        '''
+        让我们检查结果中是否有不匹配的情况，通过在数据集中寻找空值来查看
+        '''
+        merged.isnull().any()
+        merged[merged['population'].isnull()].head()
+        '''
+        发现所有空的人口数据都是2000年前波多黎各的；
+        这可能因为数据来源本来就没有这些数据造成的
+        '''
+        '''
+        更重要的是，我们发现一些新的州`state`的数据也是空的，
+        这意味着`abbrevs`列中不存在这些州的简称。
+        再看看是哪些州有这种情况
+        '''
+        merged.loc[merged['state'].isnull(),'state/region'].unique()
+        '''
+        从上面的结果很容易发现：人口数据集中包括波多黎各（PR）和
+        全美国（USA）的数据，而州简称数据集中却没有这两者数据。
+        通过填充相应的数据可以很快解决这个问题
+        '''
+        merged.loc[merged['state/region']=='PR','state'] = 'Puerto Rico'
+        merged.loc[merged['state/region']=='USA','state'] = 'United States'
+        merged.isnull().any()
+
+        final = pd.merge(merged,areas,on='state',how='left')
+        final.head()
+
+        final.isnull().any()
+
+        final.loc[final['area (sq. mi)'].isnull(),'state'].unique()
+
+        final['state'][final['area (sq. mi)'].isnull()].unique()
+
+        final.dropna(inplace=True)
+        final.head()
+
+        data2010 = final.query('ages == "total" & year == 2010')
+        data2010.head()
+
+        data2010.set_index('state',inplace=True)
+        data2010.head()
+        density = data2010['population'] / data2010['area (sq. mi)']
+        density.head()
+
+        density.sort_values(ascending=False,inplace=True)
+        density.head()
+        '''
+        我们也可以查看结果的最后部分
+        '''
+        density.tail()
+        '''
+        当使用真实世界数据回答这种问题的时候，这种数据集的合并是很常见的任务
+        '''
+        '''
+        df.isnull() 返回整个数据框每个元素对应位置的布尔值
+        df.isnull().any() 返回整个数据框每一列的布尔值
+        df.isnull().any().any() 返回整个数据框的布尔值
+        '''
+        '''
+        df.unique() 是 pandas 库中的一个方法，
+        用于返回一个 Series 对象，其中包含了指定列或者多个列中的唯一值
+        '''
+        '''
+        sort_values() 是 pandas 库中的一个方法，
+        用于对 DataFrame 或 Series 中的数据进行排序。
+        该方法可以根据一个或多个列的值来对数据进行升序或降序排列
+        '''
+        data2010.sort_values(by='population', ascending=False)
+        '''
+        reset_index()：这个函数用于重置数据框的索引。它会将原来的索引列转换为普通列，
+        并添加一个新的从0开始的整数索引。默认情况下，新索引会放在数据框的最后一列。
+        '''
+        '''
+        set_index()：这个函数用于设置数据框的索引。你可以将一个或多个列设置为索引
+        （把列索引转为行索引）
+        '''
+        '''
+        df.loc[row_label, column_label]
+        其中，row_label表示行标签，column_label表示列标签
+        '''
+        '''
+        df.query() 是 pandas 库中的一个方法，用于对 DataFrame 进行过滤。
+        它接受一个字符串参数，该字符串表示查询条件，然后返回满足条件的行组成的
+        新DataFrame
+        '''
+        '''
+        df.sort_values() 是一个用于对 Pandas DataFrame 进行排序的函数。
+        它可以根据一个或多个列的值对数据进行升序或降序排序
+        参数说明：
+        by：
+            指定要排序的列名或列名列表，可以是单个列名或多个列名组成的列表。
+        axis：
+            指定排序的轴向，0 表示按行排序，1 表示按列排序。默认为 0。
+        ascending：
+            指定排序方式，True 表示升序，False 表示降序。默认为 True。
+        inplace：
+            指定是否在原始 DataFrame 上进行排序操作。True 表示在原始 DataFrame 上进行排序，
+            False 表示返回一个新的排序后的DataFrame。默认为 False。
+        kind：
+            指定排序算法的类型。可选值包括 'quicksort'（快速排序）、
+            'mergesort'（归并排序）和 'heapsort'（堆排序）。默认为 'quicksort'。
+        na_position：
+            指定缺失值的位置。可选值包括 'first'（放在前面）、'last'（放在后面）和
+            'remove'（删除包含缺失值的行）。默认为 'last'。
+        '''
+        '''
+        删除行：df.drop([index_label], axis=0, inplace=False)
+        删除列：df.drop([column_label], axis=1, inplace=False)
+        '''
+
         
+
+
+
+
         
+
         
 
 
