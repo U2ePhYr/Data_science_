@@ -2035,6 +2035,32 @@ def get_pandas():
         删除行：df.drop([index_label], axis=0, inplace=False)
         删除列：df.drop([column_label], axis=1, inplace=False)
         '''
+        '''
+        There is a list of 26 character heights aligned by index to their letters. 
+        For example, 'a' is at index 0 and '2' is at index 25There will also be a string. Using the letter heights given, determine the area of the rectangle highlight in mm'assuming all letters are lmm, wide.
+        Exampleh=[1,3,1,3,1,4,1,3,2,5,5,5,5,1,1,5,5,1,5,2,5,5,5,5,5,5]word -'torn'
+        The heights are t=2,o= 1,, = 1 and n = 1. The tallest letter is 2 high and 
+        there are 4 letters. The hightlightedarea will be 2*4=8mm' so the answer is 8.
+        '''
+        def designerPdfViewer(h, word):
+            l = list('abcdefghijklmnopqrstuvwxyz')
+            dic = {}
+            length = len(h)
+            result = []
+
+            for i in range(length):
+                dic[l[i]] = h[i]
+            
+            for j in word:
+                result.append(dic.get(j))
+            
+            return len(word)*max(result)
+        '''
+        dict.get(key, default=None): 返回字典中指定键的值，如果键不存在，则返回默认值
+        dict.pop(key, default=None): 删除并返回字典中指定键的值，如果键不存在，则返回默认值
+        dict.setdefault(key, default=None): 如果键存在于字典中，则返回其值；
+        否则将添加键并将其设置为默认值，然后返回默认值
+        '''
 
         
 
