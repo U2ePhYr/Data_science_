@@ -152,6 +152,13 @@ Query the smallest Northern Latitude (LAT_N) from STATlON that is greater than 3
 '''
 select round(lat_n,4) from station where lat_n > 38.7780 order by lat_n limit 1
 
+'''
+曼哈顿距离的正式意义为L1-距离或城市区块距离，也就是在欧几里德空间的固定直角坐标系上两点所形成的线段对轴产生的投影的距离总和
+在平面上，坐标(x1,y1)的i点与坐标(x2,y2)的j点的曼哈顿距离为：d(i,j)=|X1-X2|+|Y1-Y2|
+'''
+
+
+
 
 
 
