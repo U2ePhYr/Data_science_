@@ -2061,6 +2061,278 @@ def get_pandas():
         dict.setdefault(key, default=None): 如果键存在于字典中，则返回其值；
         否则将添加键并将其设置为默认值，然后返回默认值
         '''
+        # 7.22
+        import numpy as np
+        import pandas as pd
+
+        class display(object):
+            """Display HTML representation of multiple objects"""
+            template = """<div style="float: left; padding: 10px;">
+            <p style='font-family:"Courier New", Courier, monospace'>{0}</p>{1}
+            </div>"""
+            def __init__(self, *args):
+                self.args = args
+                
+            def _repr_html_(self):
+                return '\n'.join(self.template.format(a, eval(a)._repr_html_())
+                                for a in self.args)
+            
+            def __repr__(self):
+                return '\n\n'.join(a + '\n' + repr(eval(a))
+                                for a in self.args)
+        
+        import seaborn as sns
+        
+        planets = sns.load_dataset('planets')
+        planets.shape
+
+        planets.head()
+
+        rng = np.random.RandomState(42)
+        sns = pd.Series(rng.rand(5))
+        sns
+
+        sns.sum()
+        sns.mean()
+        '''
+        对于`DataFrame`来说，默认情况下是每个列进行聚合的结果
+        '''
+        df = pd.DataFrame({'A': rng.rand(5),
+                           'B': rng.rand(5)})
+        df.mean()
+        '''
+        通过指定`axis`参数，可以为每一行进行聚合操作
+        '''
+        df.mean(axis='columns')
+        # 7.23
+        '''
+        Pandas提供了很方便的`describe()`可以用来对每个列计算这些通用的聚合结果
+        '''
+        planets.dropna().describe()
+        '''
+        对于开始理解数据集的整体情况来说，这是一个非常有用的方法。
+        例如，在发现年份`year`列上，结果显示，虽然第一颗太阳系外行星是1989年
+        发现的，但是一半的行星直到2010年以后才被发现的。
+        这多亏了*开普勒Kepler*计划，它是一个太空望远镜，
+        专门设计用来寻找其他恒星的椭圆轨道行星的
+        '''
+        '''
+        下表概括了Pandas內建的聚合操作：
+        | 聚合函数              | 描述                     |
+        |--------------------------|---------------------------------|
+        | ``count()``              | 元素个数           |
+        | ``first()``, ``last()``  | 第一个和最后一个元素             |
+        | ``mean()``, ``median()`` | 平均值和中位数                 |
+        | ``min()``, ``max()``     | 最小和最大值             |
+        | ``std()``, ``var()``     | 标准差和方差 |
+        | ``mad()``                | 平均绝对离差         |
+        | ``prod()``               | 所有元素的乘积            |
+        | ``sum()``                | 所有元素的总和                |
+        它们都是`DataFrame`和`Series`对象的方法
+        '''
+        '''
+        然而要深入了解数据，简单的聚合经常是不够的。
+        `groupby`操作为我们提供更高层次的概括功能，
+        通过它能很快速和有效地计算子数据集的聚合数据
+        '''
+        '''
+        `groupby`*拆分、应用、组合*
+        `groupby`完成的工作：
+        - 拆分*split*步骤表示按照指定键上的值对`DataFrame`进行拆分
+            和分组的功能。
+        - 应用*apply*步骤表示在每个独立的分组上调用某些函数进行计算，
+            通常是聚合、转换或过滤。
+        - 组合*combine*步骤将上述计算的结果重新合并在一起输出。
+        '''
+        df = pd.DataFrame({'key':['A','B','C','A','B','C'],
+                           'value': range(6)}, columns=['key','value'])
+        '''
+        最基础的拆分-应用-组合操作可以使用`DataFrame`的`groupby()`方法来实现，
+        方法中传递作为键来运算的列名
+        '''
+        df.groupby('key')
+        '''
+        它是`DataFrame`对象的一个特殊的视图，
+        使用它可以很容易的研究分组的数据，但是除非聚合操作发生，
+        否则它不会进行真实的运算。这种“懒运算”的方式意味着通用的聚合可以
+        实现得非常的高效，而对用户来说几乎是透明的
+        '''
+        '''
+        要产生结果，我们可以将一个聚合操作应用到该`DataFrameGroupBy`对象上，
+        这样就会在分组上执行应用/组合的步骤，并产生需要的结果
+        '''
+        df.groupby('key').sum()
+        '''
+        `GroupBy`对象是一个很灵活的抽象。在很多情况下，
+        你可以将它简单的看成`DataFrame`的集合，它在底层做了很多复杂的工作
+        '''
+        '''
+        `GroupBy`对象支持列索引，与`DataFrame`相同，
+        返回的是修改后的`GroupBy`对象
+        '''
+        planets.groupby('method')['orbital_period']
+        '''
+        我们在原始的`DataFrame`中选择了特定的`Series`，
+        这个`Series`是按照提供的列名进行分组的。
+        `GroupBy`对象在调用聚合操作之前是不会进行计算的
+        '''
+        planets.groupby('method')['orbital_period'].median()
+        '''
+        `GroupBy`对象支持在分组上直接进行迭代，
+        每次迭代返回分组的一个`Series`或`DataFrame`对象
+        '''
+        for method, group in planets.groupby('method'):
+            print("{0:30s}: shape={1}".format(method,group.shape))
+        '''
+        这种做法在某些需要手动实现的情况下很有用，
+        虽然通常来说使用內建的`apply`函数会快很多
+        '''
+        '''
+        代码通过for循环遍历"planets"数据表中按照'method'列进行分组的结果。
+        在每次循环中，变量method和group分别表示当前组的名称
+        （即'method'列的值）和对应的数据子集
+        '''
+        '''
+        print("{0:30s}") 是一个格式化字符串的示例。
+        在Python中，我们可以使用花括号 {} 来表示占位符，
+        其中的数字 0 表示第一个参数，即要插入到字符串中的值。
+        冒号 : 后面的 30s 是一个格式说明符，表示将第一个参数转换为一个长度
+        为30个字符的字符串。如果该字符串的长度小于30，那么它将用空格填充
+        到30个字符。如果该字符串的长度大于30，那么它将被截断以适应30个字符。
+        例如，如果我们调用 print("{0:30s}".format("Hello"))，
+        那么输出将是 "Hello"，后面跟着27个空格，使得整个字符串的长度为30
+        '''
+        '''
+        通过一些Python面向对象的魔术技巧，
+        任何非显式定义在`GroupBy`对象上的方法，
+        无论是`DataFrame`还是`Series`对象的，都可以给分组来调用。
+        例如，你可以在数据分组上调用`DataFrame`的`describe()`方法，
+        对所有分组进行通用的聚合运算
+        '''
+        planets.groupby('method')['year'].describe()
+        '''
+        任何正确的`DataFrame`或`Series`方法都能在相应的`GroupBy`对象上使用，
+        这种扩展方法的方式提供了非常灵活及强大的操作
+        '''
+        '''
+        `GroupBy`对象有`aggregate()`、`filter()`、`transfrom`和`apply()`方法，
+        它们能在组合分组数据之前有效地实现大量有用的操作
+        '''
+        rng = np.random.RandomState(0)
+        df = pd.DataFrame({'key': list('ABCABC'),
+                           'data1': range(6),
+                           'data2': rng.randint(0,10,6)},
+                           columns=['key','data1','data2'])
+        '''
+        `aggregate()`方法能提供更多的灵活性。它能接受字符串、函数或者一个列表，
+        然后一次性计算出所有的聚合结果
+        '''
+        df.groupby('key').aggregate(['min',np.median,max])
+        '''
+        可以将一个字典，里面是列名与操作的对应关系，
+        传递给`aggregate()`来进行一次性的聚合运算
+        '''
+        df.groupby('key').aggregate({'data1': 'min',
+                                     'data2': 'max'})
+        '''
+        过滤操作能在分组数据上移除一些你不需要的数据
+        可以认为`filter()`类似于SQL中的HAVING
+        '''
+        def filter_func(x):
+            return x['data2'].std() > 4
+        
+        display('df',"df.groupby('key').std()","df.groupby('key').filter(filter_func)")
+        '''
+        用来进行过滤的函数必须返回一个布尔值，表示分组是否能够通过过滤条件。
+        上例中A分组的标准差不是大于4，因此整个分组在结果中被移除了
+        '''
+        '''
+        聚合返回的是分组简化后的数据集，而转换可以返回完整数据转换后并重新合并的
+        数据集。因此转换操作的结果和输入数据集具有相同的形状。
+        一个通用例子是将整个数据集通过减去每个分组的平均值进行中心化
+        '''
+        df.groupby('key').transform(lambda x: x - x.mean())
+        df.groupby('key').mean()
+        '''
+        `apply()`方法能让你将分组的结果应用到任意的函数上。
+        该函数必须接受一个`DataFrame`参数，返回一个Pandas对象（如`DataFrame`、`Series`）
+        或者一个标量；组合操作会根据返回的类型进行适配
+        '''
+        def norm_by_data2(x):
+            x['data1'] /= x['data2'].sum()
+            return x
+        
+        display('df',"df.groupby('key').apply(norm_by_data2)")
+        '''
+        `GroupBy`对象的`apply()`方法是非常灵活的：
+        唯一的限制就是应用的函数要接受一个`DataFrame`参数并且返回一个Pandas对象或者标量；
+        函数体内做什么工作完全是自定义的
+        '''
+        '''
+        用一个列名对`DataFrame`进行拆分。这只是分组的众多方式的其中之一
+        '''
+        '''
+        分组使用的键可以使任何的序列或列表，只要长度和`DataFrame`的长度互相匹配即可
+        '''
+        l = [0,1,0,1,2,0]
+        display('df',"df.groupby(l).sum()")
+        '''
+        前面的`df.groupby('key')`语法还有另外一种更加有含义的方式来实现
+        '''
+        display('df',"df.groupby(['key']).sum()")
+        '''
+        还有一种方法是提供一个字典，将索引值映射成分组键
+        '''
+        df2 = df.set_index('key')
+        mapping = {'A': 'vowel', 'B': 'consonant', 'C': 'consonant'}
+        display('df2', "df2.groupby(mapping).sum()")
+        '''
+        类似映射，你可以传递任何Python函数将输入的索引值变成输出的分组键
+        '''
+        display('df2','df2.groupby(str.lower).mean()')
+        display('df','df.groupby(df["key"].str.lower()).mean()')
+        '''
+        任何前面的多个分组键可以组合并输出成一个多重索引的结果
+        '''
+        df2.groupby([mapping,str.lower]).mean()
+        df2.groupby([str.lower,mapping]).mean()
+        '''
+        用于计算通过不同方法在不同年代发现的行星的个数
+        '''
+        decade = 10 * (planets['year'] // 10)
+        decade = decade.astype(str) + 's'
+        decade.name = 'decade'
+
+        planets.groupby(['method',decade])['number'].sum().unstack().fillna(0)
+        '''
+        我们结合前面介绍过的多种操作之后，我们能在真实的数据集上完成多强大的操作。
+        我们立即获得了过去几十年间我们是如何发现行星的大概统计
+        '''
+        '''
+        要将Python中的字符串转换为小写，可以使用lower()方法
+        将DataFrame中的某一列转换为小写，可以使用pandas库的str.lower()方法
+            df['Name'] = df['Name'].str.lower()
+        '''
+        '''
+        decade.name = 'decade'：这一行代码为新的变量（decade）
+        设置一个名称，即'decade'。这样，在后续的数据处理过程中，
+        可以通过这个名称来引用这个变量
+        '''
+        '''
+        DataFrame.astype(dtype)
+        DataFrame 是要进行数据类型转换的 Pandas 数据框对象，
+        dtype 是要转换成的数据类型
+        把 column_name 列的数据类型从默认的浮点数类型转换为整数类型
+        astype() 函数可以应用于多个列，只需分别指定每个列的数据类型即可
+        '''
+
+
+
+        
+    
+
+
+
 
         
 
