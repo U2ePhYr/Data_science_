@@ -157,6 +157,77 @@ select round(lat_n,4) from station where lat_n > 38.7780 order by lat_n limit 1
 在平面上，坐标(x1,y1)的i点与坐标(x2,y2)的j点的曼哈顿距离为：d(i,j)=|X1-X2|+|Y1-Y2|
 '''
 
+'''
+Consider Pi (a, c) and Pi (b, d) to be two points on a 2D plane where (a, b) are the respective minimum and maximumvalues of Northern Latitude (LAT_N) 
+and (c, d) are the respective minimum and maximum values of Western Longitude(LONG_W) in STATION.
+Query the Euclidean Distance between points P and P, 
+'''
+select round(sqrt(pow(min(lat_n)-max(lat_n),2) + pow(min(long_w)-max(long_w),2)),4) from station
+'''
+在MySQL中，可以使用POW()函数进行平方运算，使用SQRT()函数进行平方根运算。pow() 是 MySQL 中的一个函数，用于计算一个数的指数次幂，
+POW(base, exponent)，其中，base 是底数，exponent 是指数。	
+'''
+
+'''
+在PostgreSQL中，JSONB是一种二进制格式的JSON数据类型，它允许你在数据库中存储和查询复杂的JSON数据结构。
+与普通的JSON类型相比，JSONB在存储时会将JSON数据解析为二进制格式，这使得查询性能更优，并支持索引。
+'''
+select *, (return_data -> 'data' -> 'ENT_INFO' ->> 'EXCEPTIONLIST') as EXCEPTIONLIST
+from zebra__gateway_log__i_d 
+where application_name='http调用:fpdxw' 
+and short_name='bidata' 
+and (return_data -> 'data' -> 'ENT_INFO' ->> 'EXCEPTIONLIST')::jsonb != '[]'
+order by create_time desc limit 100
+
+select *, (return_data -> 'data' -> 'ENT_INFO' ->> 'EXCEPTIONLIST') as EXCEPTIONLIST
+from zebra__gateway_log__i_d 
+where application_name='http调用:fpdxw' 
+and short_name='bidata' 
+and (return_data -> 'data' -> 'ENT_INFO' ->> 'EXCEPTIONLIST') != '[]'
+order by create_time desc limit 100
+
+'''
+A median is defined as a number separating the higher half of a data set from the lower half. 
+Query the median of the Northern Latitudes (LAT_N) from STATION and round your answer to 4 decimal places.
+'''
+'''
+窗口函数可以进行排序、生成序列号等一般的聚合函数无法实现的高级操作；聚合函数将结果集进行计算并且通常返回一行。窗口函数也是基于结果集的运算。
+与聚合函数不同的是，窗口函数并不会将结果集进行分组合并输出一行；而是将计算的结果合并到基于结果集运算的列上。
+'''
+'''
+**可作为窗口函数的函数分类: **
+聚合函数：① 聚合函数（SUM、AVG、COUNT、MAX、MIN）
+内置函数：② RANK、DENSE_RANK、ROW_NUMBER 等专用窗口函
+'''
+'''
+***
+	OVER 子句中的 ORDER BY只是用来决定窗口函数按照什么样的顺序进行计算的，对结果的排列顺序并没有影响；
+	而需要在select的最后指定排序，不然整个结果集不确定顺序。主意：这两个order by的作用和意思完全不同。
+***
+'''
+'''
+我们得到的并不仅仅是合计值，而是按照ORDER BY子句指定的product_id的升序进行排列，计算出商品编号“小于自己”的商品的销售单价的合计值。
+因此，计算该合计值的逻辑就像金字塔堆积那样，一行一行逐渐添加计算对象。
+在按照时间序列的顺序，计算各个时间的销售额总额等的时候，通常都会使用这种称为累计的统计方法。
+'''
+select rc1_cnt,rk,sum(rc1_cnt) over (order by rk) as cnt
+from
+(
+	select rc1_cnt, row_number() over(order by rc1_cnt) as rk
+	from finorder_microcredit_rcrate_a_d
+) as t
+where (cnt % 2 = 0 and rk = cnt / 2)
+or (cnt % 2 = 1 and rk = (cnt + 1) / 2)
+
+select round(lat_n,4)
+from
+(
+    select lat_n, row_number() over(order by lat_n) as rk, count(1) over () as cnt
+    from station
+) as t
+where (cnt % 2 = 0 and rk = cnt / 2)
+or (cnt % 2 = 1 and rk = (cnt + 1) / 2)
+
 
 
 
