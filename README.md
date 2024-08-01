@@ -6,5 +6,10 @@
 {7.10 # Combining Datasets: Concat and Append # 组合数据集：Concat 和 Append done!} /n
 {7.17 # Combining Datasets: Merge and Join # 组合数据集：Merge 和 Join done!} /n
 {7.23 # Aggregation and Grouping # 聚合与分组 done!} /n
+{8.1 # Pivot Tables # 数据透视表 done!} /n
+
+
+
+
 
 
