@@ -2325,6 +2325,261 @@ def get_pandas():
         把 column_name 列的数据类型从默认的浮点数类型转换为整数类型
         astype() 函数可以应用于多个列，只需分别指定每个列的数据类型即可
         '''
+        # 7.29
+        '''
+        在Python中，可以使用join()方法将一个字符串列表连接成一个字符串。
+        join()方法的语法如下：
+            str.join(iterable)
+        str是分隔符，用于连接列表中的每个元素；iterable是一个可迭代对象，
+        如列表、元组等
+        '''
+        # 7.30
+        '''
+        将数据透视表想象成一个*多维*版本的`GroupBy`聚合
+        '''
+        import pandas as pd
+        import numpy as np
+        import seaborn as sns
+
+        titanic = pd.read_csv(r'C:\Users\陈泽鹏\Desktop\拆分合并\seaborn-data-master\titanic.csv')
+        titanic.head()
+        
+        titanic.groupby('sex')[['survived']].mean()
+
+        titanic.groupby(['sex','class'])['survived'].aggregate('mean').unstack()
+        '''
+        二维的`GroupBy`对于在Pandas中进行普通分组统计时是足够的，
+        而透视表`pivot_table`，能简洁的处理这种多维度的聚合操作。
+        '''
+        titanic.pivot_table('survived',index='sex',columns='class')
+
+        age = pd.cut(titanic['age'],[0,18,80])
+        '''
+        数值变量转为了名义变量
+        '''
+        titanic.pivot_table('survived',index=['sex',age],columns='class')
+        # 7.31
+        '''
+        pd.cut() 是 pandas 库中的一个函数，用于将连续数值数据分割成离散的区间。
+        pd.cut(x, bins, right=True, labels=None, retbins=False, precision=3, 
+            include_lowest=False)
+        x：需要分割的一维数组或Series。
+        bins：用于分割的区间边界，可以是一个列表、数组或者一个整数。如果是整数，
+            则表示等宽的区间。
+        '''
+        fare = pd.qcut(titanic['fare'], 2)
+        titanic.pivot_table('survived',index=['sex',age],
+                            columns=[fare,'class'])
+        '''
+        pd.qcut() 是 Pandas 库中的一个函数，用于将连续数值数据划分为相等数量
+        的区间。它根据数据的分位数来划分区间，每个区间包含相同数量的数据点
+        pd.qcut(x, q, labels=None, retbins=False)
+        x: 要进行切分的一维数组或系列（Series）。
+        q: 要划分的区间数量。可以是整数或一个包含分位数的列表。
+        labels: 可选参数，用于指定每个区间的标签。如果提供，
+            必须与区间数量相匹配。
+        retbins: 可选参数，默认为 False。如果设置为 True，
+            则返回每个区间的边界值。
+        '''
+        '''
+        `DataFrame`的`pivot_table`方法的完整签名如下：
+        pd.pivot_table
+        (
+            data, # DataFrame，当为方法时，这里是self
+            values=None, # 用来聚合的列
+            index=None, # 行索引，行分组的条件
+            columns=None, # 列索引，列分组的条件
+            aggfunc='mean', # 聚合函数，默认平均值
+            fill_value=None, # NA值的替代值
+            margins=False, # 总计，行与列相加的结果
+            dropna=True, # 是否移除含有NA值的列
+            margins_name='All', # 总计的行和列的标签
+        )
+        '''
+        '''
+        其中的`fill_value`和`dropna`与数据集的缺失值相关
+        `aggfunc`参数指定数据透视表使用的聚合函数，默认是平均值`'mean'`。
+        就像`GroupBy`中一样，聚合函数可以通过函数名称的字符串来指定
+        （例如``'sum'``、``'mean'``、``'count'``、``'min'``、``'max'``等）。
+        除此之外，也可以通过一个字典将列与聚合函数对应起来作为`aggfunc`的参数
+        '''
+        titanic.pivot_table(index='sex',columns='class',
+                            aggfunc={'survived': 'sum','fare':'mean'})
+        '''
+        `values`参数也被忽略了；当我们将列和聚合函数映射的字典传递到`aggfunc`参数时，
+        进行聚合的列显然是不需要指定的
+        '''
+        '''
+        对每个组进行总计（或者小计）是很有用的。这可以通过指定`margins`参数来计算
+        '''
+        titanic.pivot_table('survived',index='sex',columns='class',margins=True)
+        '''
+        结果最后一行展示了所有性别不同舱位的存活率，
+        最后一列展示了所有舱位不同性别的存活率，而右下角的数字代表总体存活率，
+        约为38%。总计（或小计）的标签可以通过`margins_name`参数来制定，
+        默认为`"All"`
+        '''
+        births = pd.read_csv(r'C:\Users\陈泽鹏\Desktop\拆分合并\Python_Data_Science_Handbook\notebooks\data\births.csv')
+        births.head()
+
+        births['decade'] = 10 * (births['year'] // 10)
+        births.pivot_table('births',index='decade',columns='gender',
+                           aggfunc='sum')
+        '''
+        我们会立刻发现男孩的出生人数在每一个年代都超过了女孩
+        '''
+        %matplotlib inline
+        import matplotlib.pyplot as plt
+        sns.set()
+        births.pivot_table('births',index='year',columns='gender',
+                           aggfunc='sum').plot()
+        plt.ylabel('total births per year')
+        Axis = plt.gca()
+        Axis.yaxis.get_major_formatter().set_useOffset(False)
+        Axis.yaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, _: '{:.0f}'.format(x))
+            )
+        '''
+        plt.gac() 是matplotlib库中的一个函数，用于获取当前的axes对象。
+        它通常在自定义图形绘制时使用，以便在当前轴上进行进一步的绘图操作
+        '''
+        '''
+        '{:,.0f}'.format(x) 这段代码的意思是将变量 x 的值按照一定的格式进行输出。
+        {:,.0f} 是一个格式说明符，它告诉Python如何格式化 x。
+            {}：这是占位符，表示将被替换为 x 的值。
+        :：这是一个可选的字段宽度指定符，如果提供了这个，
+            那么输出的字符串将至少有这么多的字符宽。
+        ,：这是一个可选的数字分组符号，用于在数字中添加逗号作为千位分隔符。
+            例如，1000会被格式化为"1,000"。
+        .0f：这是一个类型指定符，表示 x 应该是一个浮点数，
+            并且小数部分应该被舍去（即，结果应为整数）
+        '''
+        '''
+        应该对数据进行一定清洗，删除由于错误输入日期导致的离群值（例如6月31日）
+        或者缺失值（例如6月99日）。一次性删除这些离群数据的简单办法是通过一种
+        叫sigma-clipping的稳健统计操作
+        '''
+        quartiles = np.percentile(births['births'], [25, 50, 75])
+        mu = quartiles[1]
+        sig = 0.74 * (quartiles[2] - quartiles[0])
+        '''
+        np.percentile 是 NumPy 库中的一个函数，用于计算数组中给定百分位数的值
+        numpy.percentile(a, q, axis=None, out=None, overwrite_input=False, 
+            interpolation='linear', keepdims=False)
+        a：输入数组
+        q：要计算的百分位数，范围在 0 到 100 之间
+        axis：沿着哪个轴计算百分位数，默认为 None，表示计算整个数组的百分位数
+        out：可选参数，用于存储结果的输出数组
+        overwrite_input：可选参数，布尔值，表示是否允许修改输入数组
+        interpolation：可选参数，插值方法，可选值为 'linear'（线性插值）、'lower'（下限）、'higher'（上限）和 'midpoint'（中点），默认为 'linear'
+        keepdims：可选参数，布尔值，表示是否保持原数组的维度，默认为 False
+        '''
+        '''
+        将年份乘以10000，月份乘以100，然后加上日期，将这三部分组合成一个整数。
+        接着，使用pd.to_datetime()函数将这个整数转换为日期格式
+        '''
+        '''
+        dayofweek 是一个用于获取日期中星期几的函数。
+        '''
+        # m = np.quantile(births['births'], [0.25, 0.50, 0.75])
+        '''
+        np.quantile() 是一个NumPy库中的函数，用于计算数组的分位数。
+        # 计算第25个百分位数（即下四分位数）
+        lower_quartile = np.quantile(data, 0.25)
+        '''
+        a = np.random.standard_normal(10000)
+        iq = np.percentile(a, [25, 50, 75])
+        num = 1 / (iq[2] - iq[0])
+        '''
+        四分位距（Interquartile Range，IQR），四分位数是将数据集分为四个等份的
+        数值，其中第一四分位数（Q1）表示所有数值中最小的25%，第二四分位数（Q2）
+        表示所有数值中50%的位置，第三四分位数（Q3）表示所有数值中最大的25%。
+        计算 Q3 - Q1，我们可以得到 IQR 的值，即 1.34896。
+        这个值可以用来衡量数据的离散程度，较大的 IQR 表示数据分布较为分散，
+        较小的 IQR 表示数据分布较为集中。
+        '''
+        births = births.query('(births > @mu - 5 * @sig) & (births < @mu + 5 * @sig)')
+        '''
+        这里的@符号表示变量引用，mu和sig分别表示均值和标准差
+        '''
+        '''
+        df.query() 是Pandas库中的一个函数，用于在DataFrame中进行条件查询。
+        它允许你使用布尔表达式来筛选满足条件的行。
+        df.query('Age > 28')
+        '''
+        # any(births['day'].isna())
+        # l = [1,2,'a',None]
+        # df = pd.DataFrame(l,columns=[1])
+        # any(df.isna())
+        '''
+        any() 是 Python 中的一个内置函数，用于检查可迭代对象
+        （如列表、元组等）中是否存在至少一个元素为真（True）。
+        如果存在至少一个元素为真，则返回 True，否则返回 False
+        '''
+        births['day'] = births['day'].astype(int)
+
+        births.index = pd.to_datetime(births['year']*10000 + 
+                                      births['month']*100 +
+                                      births['day'],format='%Y%m%d')
+        
+        births['dayofweek'] = births.index.dayofweek
+
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
+
+        births.pivot_table('births',index='dayofweek',columns='decade',
+                           aggfunc='mean').plot()
+        plt.gca().set_xlim(0, 6)
+        plt.gca().set_xticklabels(['Mon','Tue','Wed','Thurs','Fri','Sat','Sun'])
+        plt.ylabel('mean birth by day')
+        '''
+        使用plt.gca()获取当前的Axes对象，然后调用set_xticklabels()方法
+        来设置x轴刻度标签
+        '''
+        '''
+        # 设置X轴的范围
+        plt.gca().set_xlim(min(x), max(x))
+        '''
+        '''
+        出生数在休息日要比工作日少。还要注意到1990和2000年代数据缺失，
+        原因是疾控中心的数据从1989年开始就只包含月份信息了
+        '''
+        '''
+        分析每年每天的平均出生数
+        '''
+        births_by_date = births.pivot_table('births',index=[births.index.month,births.index.day])
+        '''
+        简单的绘制图表，我们可以将上面的月份日期随便放在一个闰年年份中形成
+        完整的时间序列（闰年是为了保证2月29日也能包含在结果集中）
+        '''
+        births_by_date.index = [pd.datetime(2004,month,day) for (month, day) in 
+                                births_by_date.index]
+        '''
+        pd.datetime() 是一个用于创建 Pandas 中的日期时间对象的函数。
+        它接受一个或多个参数，用于指定年、月、日、时、分、秒等时间信息。
+        import pandas as pd
+        # 创建一个日期时间对象
+        dt = pd.datetime(2023, 7, 3, 10, 30, 0)
+        '''
+        fig, ax = plt.subplots(figsize=(12, 4))
+        births_by_date.plot(ax=ax)
+        '''
+        创建了一个图形（figure）和一个坐标轴（axes）对象。
+        plt.subplots()函数用于创建一个图形和多个子图
+        births_by_date.plot()函数用于绘制数据，
+        ax=ax表示将数据绘制在指定的坐标轴上
+        '''
+        '''
+        已经学习到的很多Python和Pandas的工具可以联合使用来深入分析不同的数据集
+        以获得需要的结果
+        '''
+        
+
+
+
+        
+
+
 
 
 
