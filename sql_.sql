@@ -225,11 +225,18 @@ from
     select lat_n, row_number() over(order by lat_n) as rk, count(1) over () as cnt
     from station
 ) as t
-where (cnt % 2 = 0 and rk = cnt / 2)
-or (cnt % 2 = 1 and rk = (cnt + 1) / 2)
+where (cnt % 2 = 0 and rk = cnt / 2 end
 
-
-
-
-
-
+'''
+Given the ClTY and COUNTRY tables, query the names of all the continents (COUNTRY.Continent) and their respective
+average city populations (ClTY,Population) rounded down to the nearest integer.
+'''
+select t2.continent, floor(avg(t1.population)) from city as t1 left join country as t2 on t1.countrycode=t2.code where t2.continent is not NULL group by t2.continent 
+'''
+MySQL中的FLOOR()函数用于向下取整，即返回小于或等于给定参数的最大整数
+'''
+SELECT FLOOR(10.5);
+'''
+检查一个字段是否不为空，可以使用IS NOT NULL条件
+'''
+SELECT * FROM users WHERE email IS NOT NULL;
