@@ -2841,7 +2841,7 @@ def get_pandas():
         JSON Array，然后将这个JSON Array的字符串传递到`pd.read_json`来进行解析
         '''
         # import codecs
-
+        # 8.6
         with open(r'C:\Users\陈泽鹏\Desktop\拆分合并\Python_Data_Science_Handbook\notebooks\data\20170107-061401-recipeitems.json\20170107-061401-recipeitems.json',
                   'r', encoding='utf-8') as f:
             data = (line.strip() for line in f)
@@ -2913,6 +2913,23 @@ def get_pandas():
         清洗和预处理真实世界的数据是这个领域非常主要的工作之一，Pandas提供了一些工具能帮助你
         很有效率的完成它
         '''
+        '''
+        Complete the saveThePrisoner function in the editor below. 
+        It should return an integer representing the chair number of the prisoner to warn.
+        saveThePrisoner has the following parameter(s):
+        int n: the number of prisoners
+        int m: the number of sweets
+        int s: the chair number to begin passing out sweets from
+        Returns
+        int: the chair number of the prisoner to warn
+        '''
+        def saveThePrisoner(n, m, s):
+            last_sweet = (m + s - 1) % n 
+
+            if last_sweet == 0:
+                return n
+            else:
+                return last_sweet
 
 
 
