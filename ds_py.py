@@ -2573,7 +2573,353 @@ def get_pandas():
         已经学习到的很多Python和Pandas的工具可以联合使用来深入分析不同的数据集
         以获得需要的结果
         '''
+        '''
+        list.pop() 是 Python 中用于从列表中移除并返回指定索引处的元素的方法。
+        如果不提供索引，则默认移除并返回列表的最后一个元素。
+        my_list = [1, 2, 3, 4, 5]
+        last_element = my_list.pop()
+        print(last_element)  # 输出：5
+        print(my_list)  # 输出：[1, 2, 3, 4]
+        '''
+        '''
+        要将字符串转换为列表，可以使用list()函数
+        s = "hello"
+        lst = list(s)
+        print(lst)  # 输出：['h', 'e', 'l', 'l', 'o']
+        '''
+        '''
+        要将列表转换为字符串，可以使用Python的join()方法。首先，确保列表中的所有元素都是
+        字符串类型，然后使用join()方法将它们连接起来
+        '''
+        '''
+        Given a range of numbered days, i...,jl and a number k. determine the number of days 
+        in the range that arebeautiful. Beautiful numbers are defined as numbers where 
+        i-reverse(i) is evenly divisible by k. lf a dav's value is abeautiful number, 
+        it is a beautiful day., Return the number of beautiful days in the range.
+        '''
+        def beautifulDays(i, j, k):
+            count = 0
+            
+            while i <= j:
+                l = []
+                m = str(i)
+                m_l = list(m)
+
+                for num in range(len(m_l)):
+                    l.append(m_l.pop())
+                
+                if (i - int(''.join(l))) % k == 0:
+                    count += 1
+                i += 1
+            
+            return count
         
+        # 8.5
+        '''
+        Python的一个强大的特点就是它能相对简单的处理和操作字符串数据。Pandas在此基础上提供了一整套
+        *向量化字符串操作*，这成为了当我们处理（清洗）真实世界数据时非常关键的功能
+        看它们在我们对从互联网采集到的非常不规范的数据集进行清洗时发挥的作用
+        '''
+        '''
+        NumPy和Pandas的工具能向量化算术运算，可以很容易和快速的对数组的元素进行相同的数学计算
+        '''
+        import numpy as np
+
+        x = np.array([2,34,56,7,8])
+        x * 2
+        '''
+        这种*向量化*的操作能简化数组元素的操作语法：我们不再需要担心数组的大小和形状，
+        只需要关注于需要进行的运算本身
+        '''
+        '''
+        对于字符串数组，NumPy没有提供这种简单的操作，因此你需要继续使用循环语法来处理
+        '''
+        data = ['peter', 'Paul', 'MARY', 'gUIDO']
+        [s.capitalize() for s in data]
+        '''
+        capitalize()是Python中的一个字符串方法，用于将字符串的第一个字符转换为大写，
+        其余字符转换为小写
+        '''
+        # data = ['peter', 'Paul', None, 'MARY', 'gUIDO']
+        # [s.capitalize() for s in data]
+        '''
+        对于含有缺失值的数据集来说就出问题了
+        '''
+        '''
+        Pandas包含了前面说到的向量化的字符串操作，而且还能正确的处理缺失值，
+        这可以通过Pandas的Series和Index对象的`str`属性来实现
+        '''
+        import pandas as pd
+        name = pd.Series(data)
+        name.str.capitalize()
+        '''
+        在IPython中在`str`属性上使用制表符自动补全功能可以列出Pandas中支持的
+        所有的向量化字符串操作
+        '''
+        monte = pd.Series(['Graham Chapman', 'John Cleese', 'Terry Gilliam',
+                   'Eric Idle', 'Terry Jones', 'Michael Palin'])
+        '''
+        几乎所有Python內建的字符串方法都有Pandas的向量化版本。
+        下面是Pandas的`str`属性中与Python內建字符串方法一致的方法：
+        |             |                  |                  |                  |
+        |-------------|------------------|------------------|------------------|
+        |``len()``    | ``lower()``      | ``translate()``  | ``islower()``    | 
+        |``ljust()``  | ``upper()``      | ``startswith()`` | ``isupper()``    | 
+        |``rjust()``  | ``find()``       | ``endswith()``   | ``isnumeric()``  | 
+        |``center()`` | ``rfind()``      | ``isalnum()``    | ``isdecimal()``  | 
+        |``zfill()``  | ``index()``      | ``isalpha()``    | ``split()``      | 
+        |``strip()``  | ``rindex()``     | ``isdigit()``    | ``rsplit()``     | 
+        |``rstrip()`` | ``capitalize()`` | ``isspace()``    | ``partition()``  | 
+        |``lstrip()`` |  ``swapcase()``  |  ``istitle()``   | ``rpartition()`` |
+        '''
+        '''
+        要提醒的是，这些方法与內建字符串方法可能有着不同的返回值，
+        如`lower()`返回的是一个字符串的Series对象
+        '''
+        monte.str.lower()
+        '''
+        另外一些返回的是数字的Series对象
+        '''
+        monte.str.len()
+        '''
+        或布尔值的Series对象
+        '''
+        '''
+        monte.str表示对名为"monte"的Pandas DataFrame或Series中的所有字符串进行操作
+        '''
+        monte.str.startswith('T')
+        '''
+        还有一些会返回诸如列表那样的复合类型的Series对象
+        '''
+        monte.str.split()
+        '''
+        后面会讨论到如何操作这种列表组成的Series对象
+        '''
+        '''
+        一些方法可以接受正则表达式来检查每个元素字符串是否匹配模式，它们遵从Python內建的`re`模块的API规范：
+        | 方法 | 描述 |
+        |--------|-------------|
+        | ``match()`` | 在每个元素上调用``re.match()``方法，返回布尔类型Series |
+        | ``extract()`` | 在每个元素上调用``re.match()``方法，返回匹配到模式的正则分组的Series |
+        | ``findall()`` | 在每个元素上调用``re.findall()``方法 |
+        | ``replace()`` | 将匹配模式的字符串部分替换成其他字符串值 |
+        | ``contains()`` | 在每个元素上调用``re.search()``，返回布尔类型Series |
+        | ``count()`` | 计算匹配到模式的次数 |
+        | ``split()``   | 等同于``str.split()``，但是能接受正则表达式参数 |
+        | ``rsplit()`` | 等同于``str.rsplit()``, 但是能接受正则表达式参数 |
+        '''
+        monte.str.extract('([A-Za-z]+)',expand=False)
+        '''
+        str.extract()是一个字符串方法，用于从Series中的每个元素（即字符串）中
+        提取匹配正则表达式的子串
+        正则表达式([A-Za-z]+)表示匹配一个或多个连续的字母（不区分大小写）
+        expand=False表示返回的结果将是一个DataFrame，而不是一个Series。
+        如果设置为True，则返回的结果将是一个Series，其中每个元素都是一个列表，
+        包含所有匹配的子串
+        '''
+        monte.str.findall(r'^[^AEIOU].*[^aeiou]$')
+        '''
+        str.findall()方法，该方法会返回一个包含所有匹配结果的列表
+        '''
+        '''
+        ^表示字符串的开头
+        [^AEIOU]表示不是大写元音字母A、E、I、O、U的任何字符
+        .*表示任意数量的任意字符（包括0个）
+        [^aeiou]表示不是小写元音字母a、e、i、o、u的任何字符
+        $表示字符串的结尾
+        '''
+        '''
+        在`Series`或`DataFrame`上简洁的应用正则表达式的特性，
+        在清洗和分析数据任务中非常有用
+        '''
+        '''
+        下面是一些无法分类的其他方法但也是很方便的字符串功能：
+        | 方法 | 描述 |
+        |--------|-------------|
+        | ``get()`` | 对每个元素使用索引值获取字符中的字符 |
+        | ``slice()`` | 对每个元素进行字符串切片 |
+        | ``slice_replace()`` | 将每个元素的字符串切片替换成另一个字符串值 |
+        | ``cat()``      | 将所有字符串元素连接成一个字符串 |
+        | ``repeat()`` | 对每个字符串元素进行重复操作 |
+        | ``normalize()`` | 返回字符串的unicode标准化结果 |
+        | ``pad()`` | 字符串对齐 |
+        | ``wrap()`` | 字符串换行 |
+        | ``join()`` | 字符串中字符的连接 |
+        | ``get_dummies()`` | 将字符串按照分隔符分割后形成一个二维的dummy DataFrame |
+        '''
+        '''
+        `get()`和`slice()`操作，可以对每个字符串元素进行索引访问和切片的操作
+        '''
+        monte.str.slice(0,3)
+        '''
+        可以通过`str.slice(0, 3)`获取每个字符串元素的前三个字母。
+        也可以通过Python标准的切片语法来完成，`df.str[:3]`等同于
+        `df.str.slice(0, 3)`
+        '''
+        monte.str[:3]
+        '''
+        索引取值操作也是一样，`df.str[i]`等同于`df.str.get(i)`
+        '''
+        '''
+        `get()`和`slice()`方法还能支持对`split()`返回的列表进行取值操作
+        '''
+        monte.str.split().str.get(-1)
+        '''
+        `get_dummies()`。这个方法在你的数据中含有某种编码的指示器的时候非常有用
+        '''
+        full_monte = pd.DataFrame({'name': monte,
+                                   'info': ['B|C|D', 'B|D', 'A|C',
+                                    'B|D', 'B|C', 'B|C|D']})   
+        '''
+        `get_dummies()`方法能让你快速的将这些编码的指示器变量分解出来，
+        并形成一个`DataFrame`
+        '''
+        '''
+        .get_dummies('|')：这是在对选定的列进行one-hot编码。
+        get_dummies函数会将每个唯一的字符串值转换为一个新的二进制列（0或1），
+        如果原始字符串包含该值，则新列的值为1，否则为0。
+        这里的'|'是一个分隔符，表示原始字符串中的每个部分都应该被视为一个独立的值。
+        例如，如果原始字符串是"a|b|c"，那么生成的新列将是"a", "b", "c"
+        '''
+        final_monte = full_monte['info'].str.get_dummies('|')
+
+        for col in full_monte.columns:
+            final_monte[col] = full_monte[col]
+
+        new_order = ['name','info','A','B','C','D']
+
+        final_monte = final_monte[new_order]
+        '''
+        有了上述的这些向量化字符串方法，你可以在清洗数据时构建无穷无尽的字符串处理
+        流程
+        '''
+        '''
+        这些向量化字符串操作是我们对不规范的真实世界数据进行清洗的最有效工具
+        '''
+        '''
+        目标是将这些菜谱数据解析成配方的列表，这样我们就能很快速的根据我们手头的材料找到相应配方
+        的菜谱
+        '''
+        # !curl -O https://s3.amazonaws.com/openrecipes/20170107-061401-recipeitems.json.gz
+        # !gunzip 20170107-061401-recipeitems.json.gz
+
+        try:
+            recipes = pd.read_json(r'C:\Users\陈泽鹏\Desktop\拆分合并\Python_Data_Science_Handbook\notebooks\data\20170107-061401-recipeitems.json\20170107-061401-recipeitems.json')
+        except ValueError as e:
+            print('ValueError:', e)
+        '''
+        这里会产生一个`ValueError`指出有冗余的数据。原因是这个文件*每一行*都是一个正确的JSON，
+        但是整个文件不是正确的JSON格式。我们来验证一下
+        '''
+        '''
+        在Python中，当一个字符串前面加上字母r时，它就会被解释为一个原始字符串。
+        这意味着，在这个字符串中的反斜杠（\）不会被当作转义字符来处理，
+        而是被直接视为普通字符。这在某些情况下非常有用，比如当你需要在字符串中包含一些
+        特殊字符（如反斜杠、引号等），但又不希望这些字符被Python解释器解析时，
+        就可以使用原始字符串
+        '''
+        # import bz2
+
+        with open(r'C:\Users\陈泽鹏\Desktop\拆分合并\Python_Data_Science_Handbook\notebooks\data\20170107-061401-recipeitems.json\20170107-061401-recipeitems.json') as f:
+            line = f.readline()
+        pd.read_json(line).shape
+        '''
+        在Python中读取bz2文件，可以使用bz2库：
+
+        import bz2
+        # 用二进制模式打开文件
+        with bz2.open('file.bz2', 'rt') as f:
+            content = f.read()
+            print(content)
+
+        这段代码首先导入bz2库，然后使用bz2.open()函数以文本模式（'rt'）
+        打开bz2文件
+        '''
+        '''
+        通过读取文件一行我们验证了我们的想法，现在我们需要将这些正确的JSON行
+        合并在一起。实现这个目标的一种方式就是我们手动将所有的行合并成一个
+        JSON Array，然后将这个JSON Array的字符串传递到`pd.read_json`来进行解析
+        '''
+        # import codecs
+
+        with open(r'C:\Users\陈泽鹏\Desktop\拆分合并\Python_Data_Science_Handbook\notebooks\data\20170107-061401-recipeitems.json\20170107-061401-recipeitems.json',
+                  'r', encoding='utf-8') as f:
+            data = (line.strip() for line in f)
+            json_data = "[{0}]".format(','.join(data))            
+        
+        recipes = pd.read_json(json_data)
+        '''
+        data = (line.strip() for line in f)：将处理后的每行数据组成一个生成器对象，
+        赋值给变量data
+        生成器对象是一种特殊类型的迭代器，它允许你在需要时生成值，而不是一次性生成所有值。
+        这在处理大量数据时非常有用，因为它可以减少内存消耗
+        '''
+        recipes.shape
+        recipes.iloc[0]
+        '''
+        结果中有很多的数据，但大多数列的数据都是混乱不堪的，正如所有从网络中爬取的数据
+        一样。特别注意到，配方列表是一个字符串的格式，因此我们需要特别小心的在我们
+        感兴趣的列中进行数据提取操作
+        '''
+        '''
+        dtype('O')表示对象类型，通常用于表示Python中的列表、元组、字典等数据结构。
+        在NumPy库中，它用于表示任意类型的数据，包括字符串、整数、浮点数等。
+        '''
+        recipes.ingredients.str.len().describe()
+        '''
+        配方的列表平均有250个字符长，最短的是0个字符，而最长的能达到接近10000个字符
+        '''
+        '''
+        idxmax()是Pandas库中的一个函数，用于返回DataFrame或Series对象中最大值的索引。
+        如果传入参数，那么它将返回指定轴上最大值的索引。
+        '''
+        recipes['name'][recipes.ingredients.str.len().idxmax()]
+
+        recipes['description'].str.contains('[Bb]reakfast').sum()
+
+        recipes.ingredients.str.contains('[Cc]innamon').sum()
+
+        recipes.ingredients.str.contains('[Cc]inamon').sum()
+        '''
+        这些类型的基础数据分析工作，都可以通过Pandas的字符串工具进行并获得结果。
+        这正是Python在数据科学领域优于其他语言的地方
+        '''
+        '''
+        给定一系列的原材料组成的配方，找到应用了所有原料的菜谱。虽然看起来很容易，
+        实际上这个任务的难点在于数据的异构性：即无法找到一个简单的操作，
+        能从每一行中提取出干净的原料列表
+        '''
+        spice_list = ['salt', 'pepper', 'oregano', 'sage', 'parsley',
+              'rosemary', 'tarragon', 'thyme', 'paprika', 'cumin']
+        
+        import re
+        '''
+        dict() 是 Python 中的一个内置函数，用于创建字典。创建一个空字典的方法如下：
+        my_dict = dict()
+        初始化一些键值对:
+        my_dict = dict(key1='value1', key2='value2', key3='value3')
+        '''
+        spice_df = pd.DataFrame(dict((spice, recipes.ingredients.str.contains(spice, re.IGNORECASE)) for spice in spice_list))
+        spice_df.head()
+
+        selection = spice_df.query('parsley & paprika & tarragon')
+        len(selection)
+
+        recipes.name[selection.index]
+        '''
+        使用Pandas的字符串方法我们可以对数据进行异常方便的清洗操作。当然如果希望构建一个成熟的
+        菜谱推荐系统的话，需要比上例*复杂的多*的技巧和工程。将每个菜谱中的原料配方提取出来变成
+        一个列表会是其中很重要的一环；不幸的是，因为数据格式的多样性，这项任务会相对很耗时。
+        清洗和预处理真实世界的数据是这个领域非常主要的工作之一，Pandas提供了一些工具能帮助你
+        很有效率的完成它
+        '''
+
+
+
+        
+
+
+
 
 
 
